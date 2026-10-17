@@ -91,10 +91,10 @@ int main(int argc, char * argv[])
 
     QCommandLineOption repeatsOption("repeats", "Bench repeats (default 3).", "n", "3");
 
-    QCommandLineOption faithfulOption("faithful", "Disable the Splat performance options.");
+    QCommandLineOption fastOption("fast", "Enable the Splat performance options.");
 
-    QCommandLineOption disableOption("disable", "Disable some performance options: tightBounds,"
-                                     " cpuSortMetric, fastSort (comma separated).", "options");
+    QCommandLineOption enableOption("enable", "Enable some performance options: tightBounds,"
+                                    " cpuSortMetric, fastSort (comma separated).", "options");
 
     QCommandLineOption sortBenchOption("sort-bench", "Time the sorts on random metrics.");
 
@@ -104,7 +104,7 @@ int main(int argc, char * argv[])
     parser.addOptions({ backendOption, scenesOption, fixturesOption, referenceOption,
                         outputOption, sceneOption, psnrOption, benchOption, widthOption,
                         heightOption, framesOption, repeatsOption,
-                        adapterOption, faithfulOption, disableOption,
+                        adapterOption, fastOption, enableOption,
                         sortBenchOption });
 
     parser.process(application);
@@ -120,18 +120,18 @@ int main(int argc, char * argv[])
 
     Context context;
 
-    if (parser.isSet(faithfulOption))
+    if (parser.isSet(fastOption))
     {
-        context.options.tightBounds   = false;
-        context.options.cpuSortMetric = false;
-        context.options.fastSort      = false;
+        context.options.tightBounds   = true;
+        context.options.cpuSortMetric = true;
+        context.options.fastSort      = true;
     }
 
-    for (const QString & name : parser.value(disableOption).split(',', Qt::SkipEmptyParts))
+    for (const QString & name : parser.value(enableOption).split(',', Qt::SkipEmptyParts))
     {
-        if      (name == "tightBounds")   context.options.tightBounds   = false;
-        else if (name == "cpuSortMetric") context.options.cpuSortMetric = false;
-        else if (name == "fastSort")      context.options.fastSort      = false;
+        if      (name == "tightBounds")   context.options.tightBounds   = true;
+        else if (name == "cpuSortMetric") context.options.cpuSortMetric = true;
+        else if (name == "fastSort")      context.options.fastSort      = true;
         else
         {
             qWarning("Unknown option %s.", name.toUtf8().constData());

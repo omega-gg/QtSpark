@@ -85,9 +85,9 @@ class SPLAT_EXPORT WSplatView : public QQuickRhiItem
     Q_PROPERTY(qreal minAlpha   READ minAlpha   WRITE setMinAlpha   NOTIFY renderOptionsChanged)
     Q_PROPERTY(int   shDegree   READ shDegree   WRITE setShDegree   NOTIFY renderOptionsChanged)
 
-    // NOTE: Disables the Splat performance options (tight bounds, CPU sort metric), for exact
-    //       upstream behavior.
-    Q_PROPERTY(bool faithful READ isFaithful WRITE setFaithful NOTIFY renderOptionsChanged)
+    // NOTE: Enables the Splat performance options (CPU sort metric, fast sort, empty quad
+    //       culling). Off by default, which is the exact Spark code path. The image is the same.
+    Q_PROPERTY(bool fast READ isFast WRITE setFast NOTIFY renderOptionsChanged)
 
 public:
     enum Status { Null, Loading, Ready, Error };
@@ -203,8 +203,8 @@ public: // Properties
     int  shDegree() const;
     void setShDegree(int degree);
 
-    bool isFaithful() const;
-    void setFaithful(bool faithful);
+    bool isFast() const;
+    void setFast(bool fast);
 
 private:
     Q_DISABLE_COPY(WSplatView)

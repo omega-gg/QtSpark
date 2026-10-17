@@ -315,9 +315,10 @@ Each deviation is deliberate and small:
 
 ## Performance options
 
-`WSplatRenderOptions` has three Splat-only options. All are on by default and change no pixel.
-The `faithful` property of `SplatView`, and the `--faithful` flag of `splatviewer` and
-`splattest`, turn them all off, for the exact upstream behavior.
+`WSplatRenderOptions` has three Splat-only options. **They are off by default: the default is the
+exact Spark code path.** None changes the image. The `fast` property of `SplatView`, and the
+`--fast` flag of `splatviewer` and `splattest`, turn all three on. `splattest --enable a,b` turns on
+single ones, for A/B runs.
 
 - **`tightBounds`:** empty quad culling in `splat.vert`. A quad whose pixel bounding box (grown
   by 1/64 pixel, coarser than the rasterizer snapping) holds no pixel center produces no

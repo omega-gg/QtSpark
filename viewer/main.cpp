@@ -139,10 +139,10 @@ int main(int argc, char * argv[])
 
     QCommandLineOption outputOption("output", "Bench output file.", "file");
 
-    QCommandLineOption faithfulOption("faithful", "Disable the Splat performance options.");
+    QCommandLineOption fastOption("fast", "Enable the Splat performance options.");
 
     parser.addOptions({ benchOption, fixturesOption, repeatsOption, widthOption, heightOption,
-                        outputOption, faithfulOption });
+                        outputOption, fastOption });
 
     parser.addPositionalArgument("file", "A .ply or .spz file to open.");
 
@@ -171,13 +171,13 @@ int main(int argc, char * argv[])
 
     if (engine.rootObjects().isEmpty()) return 1;
 
-    if (parser.isSet(faithfulOption))
+    if (parser.isSet(fastOption))
     {
         QQuickWindow * window = qobject_cast<QQuickWindow *> (engine.rootObjects().first());
 
         WSplatView * view = window->findChild<WSplatView *>();
 
-        if (view) view->setFaithful(true);
+        if (view) view->setFast(true);
     }
 
     if (parser.isSet(benchOption))

@@ -113,21 +113,21 @@ struct WSplatRenderOptions
 
     int minSortIntervalMs = 0;
 
-    // NOTE: Splat performance options, off means the exact upstream behavior. See
-    //       doc/implementation.md, "Performance options".
+    // NOTE: Splat performance options, off by default: the defaults are the exact Spark code
+    //       path. Each option keeps the image, see doc/implementation.md "Performance options".
 
     // NOTE: Empty quad culling: quads whose bounds hold no pixel center are not rasterized (most
     //       splats of large scenes are below a pixel). The output is bit identical.
-    bool tightBounds = true;
+    bool tightBounds = false;
 
     // NOTE: The sort metric is computed on the CPU from the splat centers, with the transform of
     //       the accumulator, instead of being read back from the GPU. The sort starts at once and
     //       the GPU readback stall (OpenGL, Direct3D 11) is gone. The order is the same.
-    bool cpuSortMetric = true;
+    bool cpuSortMetric = false;
 
     // NOTE: A faster radix sort (11 bit digits, several threads) and a multithreaded CPU metric.
     //       The ordering is identical to the upstream sort.
-    bool fastSort = true;
+    bool fastSort = false;
 };
 
 //-------------------------------------------------------------------------------------------------

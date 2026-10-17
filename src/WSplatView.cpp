@@ -953,26 +953,26 @@ void WSplatView::setShDegree(int degree)
     update();
 }
 
-bool WSplatView::isFaithful() const
+bool WSplatView::isFast() const
 {
     Q_D(const WSplatView);
 
-    return (d->options.tightBounds   == false
+    return (d->options.tightBounds
             &&
-            d->options.cpuSortMetric == false
+            d->options.cpuSortMetric
             &&
-            d->options.fastSort      == false);
+            d->options.fastSort);
 }
 
-void WSplatView::setFaithful(bool faithful)
+void WSplatView::setFast(bool fast)
 {
     Q_D(WSplatView);
 
-    if (isFaithful() == faithful) return;
+    if (isFast() == fast) return;
 
-    d->options.tightBounds   = (faithful == false);
-    d->options.cpuSortMetric = (faithful == false);
-    d->options.fastSort      = (faithful == false);
+    d->options.tightBounds   = fast;
+    d->options.cpuSortMetric = fast;
+    d->options.fastSort      = fast;
 
     emit renderOptionsChanged();
 

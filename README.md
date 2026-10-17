@@ -32,7 +32,7 @@ cd test/reference && npm install && npx playwright install chromium
 node reference.mjs --spark $SPARK_DIR --ref v2.3.1       # Spark reference dumps
 cd ../..
 bin/splattest --backend d3d11 --reference build/reference/v2.3.1   # also vulkan, gl
-bin/splatviewer --backend vulkan --bench test/bench.json           # windowed benchmark
+bin/splatviewer --backend vulkan --bench test/bench.json           # windowed benchmark (--fast)
 node test/reference/bench.mjs --spark $SPARK_DIR --angle vulkan    # Spark benchmark
 node test/reference/bench.mjs --compare build/bench/viewer-*.json
 ```

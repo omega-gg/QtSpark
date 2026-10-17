@@ -22,7 +22,9 @@ How to run it, and the metric definitions, are in
   the comparable number. The GPU timers do not cover the same scope on both sides: Spark times
   `renderer.render()`, Splat times the whole Qt Quick frame.
 
-## Results (2026-10-17, Splat with its default options)
+## Results with `--fast` (2026-10-17)
+
+The Splat performance options on (`SplatView.fast`, see implementation.md). Same image.
 
 Wall time per frame, ms (lower is better):
 
@@ -51,6 +53,24 @@ Sorting and loading, D3D11 (Vulkan is similar):
   camera less.
 - **Sort time in isolation** (`splattest --sort-bench`): 2.1 ms at 322k and 5.8 ms at 2M, against
   Spark's wasm sort at about 26 ms for 2M.
+
+## Results with the default, faithful options (2026-10-17)
+
+This is the exact Spark code path: GPU readback of the sort metric and the upstream sort. Wall time
+per frame, ms, medians of 4 ABBA rounds:
+
+| Scene | Splats | Spark D3D11 | Splat D3D11 | Spark Vulkan | Splat Vulkan |
+|---|---|---|---|---|---|
+| butterfly | 177k | 9.27 | **2.83** | 9.39 | **8.34** (1) |
+| synthetic-sh3 | 20k | **13.20** | 14.51 | 13.35 | **11.91** |
+| furry | 322k | **12.80** | 14.21 | 13.50 | **12.83** |
+| large (greyscale-room) | 2.0M | **30.55** | 31.42 | **28.25** | 28.41 |
+
+- **Vulkan:** on par or ahead everywhere.
+- **D3D11:** 3 to 11% behind. Qt completes the metric readback with a blocking `Map` at the next
+  frame, so the latency is 54 to 116 ms against Spark's 15 to 45 ms, and the sort runs about
+  half as often. An asynchronous readback (a staging copy plus a fence poll, like Spark's
+  `readRenderTargetPixelsAsync`) would close this.
 
 ## Reading
 
