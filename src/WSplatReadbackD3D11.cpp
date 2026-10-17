@@ -71,19 +71,12 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
 
     source->GetDesc(&sourceDescription);
 
-    nativeContext   = context;
-    nativeTexelSize = texelSize;
-    nativeCompleted = completed;
-
-    // NOTE: Runs the commands recorded so far (the accumulator pass), so the copies come after.
-    cb->beginExternal();
-
     int layerSize = SPLAT_TEX_WIDTH * SPLAT_TEX_HEIGHT;
 
     int baseIndex = 0;
 
-    // We can only read back one 2D array layer of pixels at a time, so loop through them and
-    // initiate the readback.
+    // NOTE: The layers of WSplatReadback::request, with one staging texture each. They are all
+    //       created before any copy, so a failure falls back to the QRhi readback.
     while (baseIndex < count)
     {
         int layer     = baseIndex / layerSize;
@@ -109,17 +102,15 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
         {
             qWarning("WSplatReadback: Failed to create a staging texture.");
 
-            break;
+            releaseNative();
+
+            return false;
         }
-
-        D3D11_BOX box = { 0, 0, 0, UINT(SPLAT_TEX_WIDTH), UINT(layerYEnd), 1 };
-
-        context->CopySubresourceRegion(staging, 0, 0, 0, 0, source,
-                                       D3D11CalcSubresource(0, layer, 1), &box);
 
         Native native;
 
         native.staging = staging;
+        native.layer   = layer;
         native.offset  = qint64(layerBase) * texelSize;
         native.rows    = layerYEnd;
 
@@ -128,6 +119,21 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
         pendingLayers++;
 
         baseIndex += SPLAT_TEX_WIDTH * layerYEnd;
+    }
+
+    nativeContext   = context;
+    nativeTexelSize = texelSize;
+    nativeCompleted = completed;
+
+    // NOTE: Runs the commands recorded so far (the accumulator pass), so the copies come after.
+    cb->beginExternal();
+
+    for (const Native & native : natives)
+    {
+        D3D11_BOX box = { 0, 0, 0, UINT(SPLAT_TEX_WIDTH), UINT(native.rows), 1 };
+
+        context->CopySubresourceRegion(static_cast<ID3D11Texture2D *> (native.staging), 0, 0, 0,
+                                       0, source, D3D11CalcSubresource(0, native.layer, 1), &box);
     }
 
     // NOTE: Submits the copies, so the polls see them complete.
@@ -185,13 +191,14 @@ void WSplatReadback::pollNative(bool wait)
         pendingLayers--;
     }
 
-    if (pendingLayers != 0 || nativeCompleted == nullptr) return;
+    if (pendingLayers == 0 && nativeCompleted)
+    {
+        std::function<void()> completed = nativeCompleted;
 
-    std::function<void()> completed = nativeCompleted;
+        nativeCompleted = std::function<void()>();
 
-    nativeCompleted = nullptr;
-
-    completed();
+        completed();
+    }
 }
 
 void WSplatReadback::releaseNative()
@@ -205,7 +212,7 @@ void WSplatReadback::releaseNative()
 
     natives.clear();
 
-    nativeCompleted = nullptr;
+    nativeCompleted = std::function<void()>();
 }
 
 #else

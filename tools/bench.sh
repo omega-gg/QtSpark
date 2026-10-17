@@ -21,7 +21,8 @@ usage()
     echo "  --size WxH           Window size (default 2560x1440)."
     echo "  --tag name           Result files prefix in build/bench (default the time)."
     echo ""
-    echo "Environment: SPARK (default C:/dev/test/spark), the Spark checkout."
+    echo "Environment: SPARK_DIR, the Spark git checkout (as for test/reference)."
+    echo "QT_MSVC, QT_MINGW and MINGW_DIR override the kit folders, as for build.sh."
 
     exit 1
 }
@@ -54,9 +55,20 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+if [ $spark = 1 ] && [ -z "$SPARK_DIR" ]; then
+
+    echo "Set SPARK_DIR to a Spark git checkout, or pass --no-spark."
+
+    exit 1
+fi
+
 root="$(cd "$(dirname "$0")/.." && pwd)"
 
-SPARK="${SPARK:-C:/dev/test/spark}"
+# NOTE: The same defaults as build.sh.
+QT_MINGW="${QT_MINGW:-/c/Qt/6.10.1/mingw_64}"
+QT_MSVC="${QT_MSVC:-/c/Qt/6.10.1/msvc2022_64}"
+
+MINGW_DIR="${MINGW_DIR:-/c/Qt/Tools/mingw1310_64}"
 
 width="${size%x*}"
 height="${size#*x}"
@@ -74,11 +86,11 @@ if [ "$kit" = "msvc" ]; then
 
     viewer="$root/bin/msvc/splatviewer.exe"
 
-    export PATH="/c/Qt/6.10.1/msvc2022_64/bin:$PATH"
+    export PATH="$QT_MSVC/bin:$PATH"
 else
     viewer="$root/bin/splatviewer.exe"
 
-    export PATH="/c/Qt/6.10.1/mingw_64/bin:/c/Qt/Tools/mingw1310_64/bin:$PATH"
+    export PATH="$QT_MINGW/bin:$MINGW_DIR/bin:$PATH"
 fi
 
 export QT_FORCE_STDERR_LOGGING=1
@@ -95,22 +107,46 @@ if [ -n "$scene" ]; then scenes="--scene $scene"; fi
 # Runs
 #--------------------------------------------------------------------------------------------------
 
+# NOTE: The runs print their per scene lines only. Unlike grep, sed does not fail when there are
+#       none, so a failed run does not stop the others.
+check()
+{
+    if [ ! -f "$1" ]; then echo "Warning: no result in $1."; fi
+}
+
 run_spark()
 {
     echo "=== round $1 spark"
 
-    (cd "$root/test/reference" && node bench.mjs --spark "$SPARK" --angle d3d11 --repeats 1 \
-        --width $width --height $height $frames $scenes --output "$output/$tag-spark-r$1.json") \
-        | grep -E "splats, median"
+    file="$output/$tag-spark-r$1.json"
+
+    (cd "$root/test/reference" && node bench.mjs --spark "$SPARK_DIR" --angle d3d11 \
+        --repeats 1 --width $width --height $height $frames $scenes --output "$file") 2>&1 \
+        | sed -n "/splats, median/p"
+
+    check "$file"
+}
+
+# Usage: viewer_bench <backend> <output file> [frame options]
+viewer_bench()
+{
+    backend="$1"
+    file="$2"
+
+    shift 2
+
+    "$viewer" --backend $backend --bench "$root/test/bench.json" \
+        --fixtures "$root/build/fixtures" --repeats 1 --width $width --height $height \
+        "$@" $scenes --output "$file" 2>&1 | sed -n "/splats, frame/p"
+
+    check "$file"
 }
 
 run_viewer()
 {
     echo "=== round $1 $2"
 
-    "$viewer" --backend $2 --bench "$root/test/bench.json" --fixtures "$root/build/fixtures" \
-        --repeats 1 --width $width --height $height $frames $scenes \
-        --output "$output/$tag-$2-r$1.json" 2>&1 | grep -E "splats, frame"
+    viewer_bench $2 "$output/$tag-$2-r$1.json" $frames
 }
 
 reversed=""
@@ -125,9 +161,7 @@ if [ "$preset" = "quick" ]; then
 
     echo "=== warm-up ($first, not measured)"
 
-    "$viewer" --backend $first --bench "$root/test/bench.json" --fixtures "$root/build/fixtures" \
-        --repeats 1 --width $width --height $height --frames 600 --warmup 0 $scenes \
-        --output "$output/warmup-$tag.json" > /dev/null 2>&1
+    viewer_bench $first "$output/warmup-$tag.json" --frames 600 --warmup 0 > /dev/null
 fi
 
 round=1

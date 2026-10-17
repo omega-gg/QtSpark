@@ -124,6 +124,7 @@ struct WSplatReadback
     {
         void * staging;
 
+        int    layer;
         qint64 offset;
         int    rows;
     };

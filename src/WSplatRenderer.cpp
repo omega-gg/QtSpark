@@ -1135,10 +1135,10 @@ void WSplatRendererPrivate::waitPending()
     //       readback is still alive.
     if (pending) rhi->finish();
 
-    if (job) job->metric.pollNative(true);
-
     if (job)
     {
+        job->metric.pollNative(true);
+
         jobs.append(job);
 
         job = NULL;
