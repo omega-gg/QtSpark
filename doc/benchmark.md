@@ -72,6 +72,32 @@ per frame, ms, medians of 4 ABBA rounds:
   half as often. An asynchronous readback (a staging copy plus a fence poll, like Spark's
   `readRenderTargetPixelsAsync`) would close this.
 
+## Results at 2560x1440, faithful options (2026-10-17)
+
+The MSVC build, so Direct3D 12 is included. Spark runs on ANGLE D3D11, its best Windows path:
+ANGLE has no D3D12 backend. Wall time per frame, ms, medians of 4 ABBA rounds:
+
+| Scene | Spark D3D11 | Splat D3D12 | Splat D3D11 | Splat Vulkan |
+|---|---|---|---|---|
+| butterfly | 13.80 | **3.76** | **3.48** | **8.34** (1) |
+| synthetic-sh3 | 24.85 | 28.65 | 28.98 | **24.02** |
+| furry | **22.30** | 23.45 | 23.21 | 23.48 |
+| large (greyscale-room) | 45.30 | 49.29 | 47.20 | **42.55** |
+
+- **The gap at this resolution:** on fill heavy scenes, our Direct3D paths are 4 to 17% behind
+  Spark on ANGLE D3D11, while Vulkan is at parity or ahead. The GPU times show the same gap
+  (synthetic: Spark 23.0 ms, Splat D3D 28.6 ms, Splat Vulkan 21.1 ms).
+- **Same shaders, same GPU:** the difference is in how the shaders reach the D3D driver.
+  SPIRV-Cross translates them to HLSL for Qt, and ANGLE has its own translator.
+- **Ruled out:**
+  - The FXC optimization level: `/O1` and `/O3` give the same bytecode.
+  - The unused varyings `vNdc` and `vSplatIndex`: removing them changed nothing, the driver
+    strips them.
+
+  Finding the cause needs a GPU capture of both (PIX or Nsight Graphics).
+- **Direct3D 12:** its first run in a session is slower (shader compile and GPU clock ramp),
+  later runs match D3D11.
+
 ## Reading
 
 - Splat is ahead wherever the browser or the CPU side costs something: light and medium scenes,
