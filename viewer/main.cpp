@@ -32,6 +32,7 @@
 #include <QImage>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QFile>
 
 // Splat includes
@@ -139,10 +140,16 @@ int main(int argc, char * argv[])
 
     QCommandLineOption outputOption("output", "Bench output file.", "file");
 
+    QCommandLineOption framesOption("frames", "Bench frames (default from the bench file).", "n");
+    QCommandLineOption warmupOption("warmup", "Bench warmup (default from the bench file).", "n");
+
+    QCommandLineOption sceneOption("scene", "Only bench these scenes (comma separated).",
+                                   "names");
+
     QCommandLineOption fastOption("fast", "Enable the Splat performance options.");
 
     parser.addOptions({ benchOption, fixturesOption, repeatsOption, widthOption, heightOption,
-                        outputOption, fastOption });
+                        outputOption, framesOption, warmupOption, sceneOption, fastOption });
 
     parser.addPositionalArgument("file", "A .ply or .spz file to open.");
 
@@ -197,8 +204,35 @@ int main(int argc, char * argv[])
 
         window->resize(parser.value(widthOption).toInt(), parser.value(heightOption).toInt());
 
-        WViewerBench * runner = new WViewerBench(window, view,
-                                                 QJsonDocument::fromJson(file.readAll()).object(),
+        QJsonObject config = QJsonDocument::fromJson(file.readAll()).object();
+
+        if (parser.isSet(framesOption))
+        {
+            config.insert("frames", parser.value(framesOption).toInt());
+        }
+
+        if (parser.isSet(warmupOption))
+        {
+            config.insert("warmup", parser.value(warmupOption).toInt());
+        }
+
+        if (parser.isSet(sceneOption))
+        {
+            QStringList names = parser.value(sceneOption).split(',');
+
+            QJsonArray scenes;
+
+            for (const QJsonValue & scene : config.value("scenes").toArray())
+            {
+                QString name = scene.toObject().value("name").toString();
+
+                if (names.contains(name)) scenes.append(scene);
+            }
+
+            config.insert("scenes", scenes);
+        }
+
+        WViewerBench * runner = new WViewerBench(window, view, config,
                                                  parser.value(fixturesOption),
                                                  parser.value(repeatsOption).toInt(),
                                                  parser.value(outputOption));

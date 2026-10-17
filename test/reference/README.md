@@ -28,8 +28,9 @@ The Spark checkout is passed with `--spark <dir>` or the `SPARK_DIR` environment
 | `node fixtures.mjs [--spark <dir>] [--force]` | Writes the synthetic PLYs and downloads the sample `.spz` files into `build/fixtures/`. |
 | `node reference.mjs --spark <dir> [--ref v2.3.1] [--scene name] [--headed]` | Renders every scene of `test/scenes.json` in SwiftShader Chromium and writes `build/reference/<ref>/<scene>/`. Exits 1 if a scene's fixture is missing. |
 | `npm run viewer -- <fixture or file> [--port 8095] [--no-open]` | Serves `www/viewer.html` (SparkControls, full window, hardware GPU) and opens it in the default browser. |
-| `node bench.mjs --spark <dir> [--width 1920 --height 1080] [--angle d3d11\|vulkan\|gl] [--repeats 3] [--frames N] [--warmup N] [--scene name] [--in-flight 2] [--low-power]` | Benchmarks Spark headed on the hardware GPU and writes `build/bench/spark-<ref>-<angle>-<UTC timestamp>.json`. |
+| `node bench.mjs --spark <dir> [--width 1920 --height 1080] [--angle d3d11\|vulkan\|gl] [--repeats 3] [--frames N] [--warmup N] [--scene a,b] [--in-flight 2] [--low-power] [--output file]` | Benchmarks Spark headed on the hardware GPU and writes `build/bench/spark-<ref>-<angle>-<UTC timestamp>.json`, or `--output`. |
 | `node bench.mjs --compare native.json... [--baseline spark.json]` | Prints one table per scene: Spark against each native file. The baseline defaults to the newest `build/bench/spark-*.json`. Add `--spark` to run a fresh benchmark first. |
+| `node summary.mjs result.json...` | Medians over rounds of the wall time, GPU time and frame interval p95, per scene and backend. `tools/bench.sh` runs it. |
 
 `reference.mjs` and `bench.mjs` call the fixture step themselves. `--build` (on `reference.mjs`
 and `bench.mjs`) is an **untested TODO** for refs whose committed dist is stale. It sets up a

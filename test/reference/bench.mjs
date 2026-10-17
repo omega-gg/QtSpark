@@ -3,7 +3,8 @@
 //
 //   node bench.mjs --spark <dir> [--ref v2.3.1] [--width 1920 --height 1080]
 //                  [--angle d3d11|vulkan|gl] [--repeats 3] [--frames N] [--warmup N]
-//                  [--scene name] [--in-flight 2] [--low-power] [--compare native.json ...]
+//                  [--scene a,b] [--in-flight 2] [--low-power] [--compare native.json ...]
+//                  [--output file]
 //   node bench.mjs --compare native.json ... [--baseline spark.json]
 //
 // Without --spark on the command line, --compare only compares: against --baseline, or
@@ -50,7 +51,7 @@ async function runBench() {
   }
 
   const scenes = config.scenes.filter((s) => {
-    if (args.scene && s.name !== args.scene) return false;
+    if (args.scene && !args.scene.split(",").includes(s.name)) return false;
     if (existsSync(path.join(FIXTURES, s.file))) return true;
     console.warn(`${s.name}: skipped, build/fixtures/${s.file} is missing`);
     return false;
@@ -158,7 +159,7 @@ async function runBench() {
   };
   mkdirSync(BENCH_DIR, { recursive: true });
   const stamp = result.timestamp.replace(/[-:]/g, "").replace("T", "-").slice(0, 15);
-  const file = path.join(BENCH_DIR, `spark-${ref}-${angle}-${stamp}.json`);
+  const file = args.output ?? path.join(BENCH_DIR, `spark-${ref}-${angle}-${stamp}.json`);
   writeFileSync(file, JSON.stringify(result, null, 2));
   console.log(`GPU: ${result.gpu}\nWrote ${file}`);
   return result;

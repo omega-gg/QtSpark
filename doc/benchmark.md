@@ -11,6 +11,16 @@ How to run it, and the metric definitions, are in
 
 ## Method
 
+`tools/bench.sh` runs both sides, interleaved, and prints the summary:
+
+- **`quick`:** about 3 minutes for two scenes. An unmeasured warm-up brings the GPU to its
+  throttled clock first, then 2 rounds (AB, then BA) of 200 frames. Use it for experiments and
+  A/B checks, with `--scene` and `--backends` to narrow it down.
+- **`full`:** 4 ABBA rounds of every scene, about 30 minutes. Use it for the tables below.
+
+The summary gives, per scene and backend, the medians over the rounds of the wall time per frame,
+the GPU time and the p95 of the frame interval (how much it stutters).
+
 - **Native:** `splatviewer --bench test/bench.json`. This is a `SplatView` in a real swapchain with
   vsync off (`swapInterval 0`) and GPU timestamps on.
 - **Spark:** `node test/reference/bench.mjs`. Chromium runs headed with
@@ -84,19 +94,56 @@ ANGLE has no D3D12 backend. Wall time per frame, ms, medians of 4 ABBA rounds:
 | furry | **22.30** | 23.45 | 23.21 | 23.48 |
 | large (greyscale-room) | 45.30 | 49.29 | 47.20 | **42.55** |
 
-- **The gap at this resolution:** on fill heavy scenes, our Direct3D paths are 4 to 17% behind
-  Spark on ANGLE D3D11, while Vulkan is at parity or ahead. The GPU times show the same gap
-  (synthetic: Spark 23.0 ms, Splat D3D 28.6 ms, Splat Vulkan 21.1 ms).
-- **Same shaders, same GPU:** the difference is in how the shaders reach the D3D driver.
-  SPIRV-Cross translates them to HLSL for Qt, and ANGLE has its own translator.
-- **Ruled out:**
-  - The FXC optimization level: `/O1` and `/O3` give the same bytecode.
-  - The unused varyings `vNdc` and `vSplatIndex`: removing them changed nothing, the driver
-    strips them.
+- **The gap at this resolution:** on fill heavy scenes, our Direct3D paths were 4 to 17% behind
+  Spark on ANGLE D3D11, while Vulkan was at parity or ahead.
+- **Direct3D 12:** its first run in a session is slower (shader compile and GPU clock ramp).
 
-  Finding the cause needs a GPU capture of both (PIX or Nsight Graphics).
-- **Direct3D 12:** its first run in a session is slower (shader compile and GPU clock ramp),
-  later runs match D3D11.
+The next section explains and fixes the gap.
+
+## Direct3D and stutter fixes (2026-10-17)
+
+### Fragment shader branches
+
+**Finding the cause.** A per pass split, on the synthetic scene at 1440p in `splattest`:
+
+- **Same cost on both APIs:** rasterization, blending, instancing and the vertex shader.
+  Synthetic quads with a trivial fragment shader took 6.45 ms on both D3D11 and Vulkan, and the
+  real vertex shader with a trivial fragment shader 10.6 ms on both.
+- **Twice the cost on D3D:** only the splat fragment shader, 7.2 ms against 3.8 ms on Vulkan.
+
+**Why.** fxc flattens its small branches into selects, so every pixel evaluates both falloff
+formulas and the unused sRGB conversion. ANGLE's HLSL compiles to the same DXBC, so Spark pays
+this cost too.
+
+**Fix.** `[[dont_flatten]]` on the two branches (see `doc/implementation.md`, Shaders). The
+images are byte identical. GPU time, synthetic at 1440p: D3D11 from 23.5 to 18.8 ms, D3D12 from
+22.4 to 19.5 ms, Vulkan unchanged at 18.2 ms.
+
+### Stutter
+
+The frame interval p95 showed it, while the medians did not:
+
+- **D3D11, blocking readback.** Most frames came 2 ms apart, then the readback `Map` waited for
+  every queued frame: a p95 of 91 ms on furry, 205 ms on large. The readback now polls, like
+  Spark's.
+- **Vulkan and D3D12, duplicate frames.** The view requested one more frame per pending sort,
+  even while the bench or the controls already requested one. Every other frame showed the same
+  pose, so the motion jumped by two poses at a time. The view now requests extra frames only
+  while the camera is still.
+
+### Results
+
+Quick preset at 2560x1440, the median of 2 rounds after the warm-up (the rounds agreed within
+1 ms). Wall time per frame, then the frame interval p95, ms:
+
+| Scene | Spark D3D11 | Splat D3D11 | Splat D3D12 | Splat Vulkan |
+|---|---|---|---|---|
+| furry | 23.16 / 36.2 | **22.69 / 25.3** | 23.45 / **25.3** | 24.07 / **26.0** |
+| large | 46.37 / 70.0 | **45.78 / 60.9** | 51.74 / **68.5** | 50.20 / **67.7** |
+
+- **Smoothness:** Splat now stutters less than Spark on every backend.
+- **Speed:** D3D11 is at parity or ahead. On the 2M splat scene, D3D12 and Vulkan are 8 to 12%
+  behind, GPU bound (50 ms of GPU time against 43.5 ms on D3D11).
 
 ## Reading
 
