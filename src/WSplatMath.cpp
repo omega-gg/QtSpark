@@ -43,6 +43,11 @@
 #pragma fp_contract(off)
 #endif
 
+// NOTE: The libm ports build NaN and infinity on purpose, like (x - x) / 0.0f.
+#ifdef _MSC_VER
+#pragma warning(disable: 4723)
+#endif
+
 //-------------------------------------------------------------------------------------------------
 // Static functions
 //-------------------------------------------------------------------------------------------------

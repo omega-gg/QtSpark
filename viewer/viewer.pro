@@ -2,7 +2,7 @@ include(../splat.pri)
 
 TARGET = splatviewer$$SPLAT_SUFFIX
 
-DESTDIR = $$SPLAT/bin
+DESTDIR = $$SPLAT_BIN
 
 TEMPLATE = app
 
@@ -10,7 +10,7 @@ QT += quick
 
 win32:CONFIG += console
 
-LIBS += -L$$SPLAT/lib -lSplat$$SPLAT_SUFFIX
+LIBS += -L$$SPLAT_LIB -lSplat$$SPLAT_SUFFIX
 
 # NOTE: The bench helpers shared with splattest.
 INCLUDEPATH += $$SPLAT/test/common

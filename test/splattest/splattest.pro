@@ -2,7 +2,7 @@ include(../../splat.pri)
 
 TARGET = splattest$$SPLAT_SUFFIX
 
-DESTDIR = $$SPLAT/bin
+DESTDIR = $$SPLAT_BIN
 
 TEMPLATE = app
 
@@ -10,7 +10,7 @@ QT += gui gui-private
 
 CONFIG += console
 
-LIBS += -L$$SPLAT/lib -lSplat$$SPLAT_SUFFIX
+LIBS += -L$$SPLAT_LIB -lSplat$$SPLAT_SUFFIX
 
 # NOTE: QVulkanInstance needs the Vulkan headers, the Vulkan backend is skipped without them.
 #       They come from the Vulkan SDK, or from the Khronos Vulkan-Headers in build/3rdparty.

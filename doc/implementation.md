@@ -371,7 +371,9 @@ not the C runtime's:
 ## Platform notes
 
 - **Direct3D 12:** the MinGW build of Qt 6.10.1 has no D3D12 backend (its SDK headers are too
-  old). Use an MSVC kit for D3D12.
+  old). The MSVC kit has it: `sh build.sh release msvc` builds into `bin/msvc` and `lib/msvc`,
+  next to the MinGW build. Both kits pass the same tests, and the loaders are byte exact with both
+  compilers.
 - **Vulkan headers:** the viewer needs none, since Qt Quick creates the Vulkan instance.
   `splattest` creates its own `QVulkanInstance`, which needs `vulkan/vulkan.h`. The headers come
   from `$VULKAN_SDK`, or from the Khronos Vulkan-Headers in `build/3rdparty`.

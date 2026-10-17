@@ -16,14 +16,16 @@ SplatView {
 
 ## Build
 
-Qt 6.10.1 with MinGW 13.1, qmake:
+Qt 6.10.1, qmake, with the MinGW 13.1 or the MSVC 2022 kit:
 
 ```sh
-sh build.sh            # release, outputs in bin/ and lib/
+sh build.sh release            # MinGW, outputs in bin/ and lib/
+sh build.sh release msvc       # MSVC, outputs in bin/msvc/ and lib/msvc/ (has Direct3D 12)
 bin/splatviewer scene.spz --backend vulkan
+bin/msvc/splatviewer scene.spz --backend d3d12
 ```
 
-`QT_DIR` and `MINGW_DIR` override the kit location.
+`QT_MINGW`, `QT_MSVC`, `MINGW_DIR`, `VCVARS` and `JOM` override the tool locations.
 
 ## Test
 

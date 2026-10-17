@@ -2,7 +2,7 @@ include(../splat.pri)
 
 TARGET = Splat$$SPLAT_SUFFIX
 
-DESTDIR = $$SPLAT/lib
+DESTDIR = $$SPLAT_LIB
 
 TEMPLATE = lib
 
@@ -42,4 +42,4 @@ SOURCES += WSplatMath.cpp \
            WSplatView.cpp
 
 # NOTE: The DLL lands next to the executables so they run without a deploy step.
-win32:DLLDESTDIR = $$SPLAT/bin
+win32:DLLDESTDIR = $$SPLAT_BIN

@@ -13,4 +13,18 @@ CONFIG(debug, debug|release) {
     SPLAT_SUFFIX =
 }
 
+# NOTE: One output folder per kit, so the MinGW and MSVC builds can live side by side.
+msvc {
+    SPLAT_BIN = $$SPLAT/bin/msvc
+    SPLAT_LIB = $$SPLAT/lib/msvc
+
+    # NOTE: M_PI, and UTF-8 sources.
+    DEFINES += _USE_MATH_DEFINES
+
+    QMAKE_CXXFLAGS += /utf-8
+} else {
+    SPLAT_BIN = $$SPLAT/bin
+    SPLAT_LIB = $$SPLAT/lib
+}
+
 unix:QMAKE_LFLAGS += "-Wl,-rpath,'\$$ORIGIN'"
