@@ -145,6 +145,8 @@ public: // Variables
 
     QMatrix4x4 matrixWorld;
 
+    bool moved = false;
+
     qreal fov;
     qreal zNear;
     qreal zFar;
@@ -175,10 +177,19 @@ public: // Variables
 
     renderer.setOptions(d->options);
 
+    QMatrix4x4 previous = matrixWorld;
+
     matrixWorld.setToIdentity();
 
     matrixWorld.translate(d->camera.position);
     matrixWorld.rotate   (d->camera.quaternion);
+
+    // NOTE: While the camera moves, whoever moves it requests the frames. The timer restarts on
+    //       every move and requests one frame once they stop, so a pending sort still completes.
+    //       Queued, since the timer lives on the GUI thread.
+    moved = (matrixWorld != previous);
+
+    if (moved) QMetaObject::invokeMethod(&(d->motionTimer), "start", Qt::QueuedConnection);
 
     fov   = d->fov;
     zNear = d->zNear;
@@ -227,8 +238,10 @@ public: // Variables
         stats->renderer.gpuMs = cb->lastCompletedGpuTime() * 1000.0;
     }
 
-    // NOTE: The readback and sort complete over the next frames, keep them coming.
-    if (renderer.needsUpdate()) update();
+    // NOTE: The readback and sort complete over the next frames, keep them coming. Not while the
+    //       camera moves: the next frame is already requested, and one more would render the same
+    //       pose twice.
+    if (moved == false && renderer.needsUpdate()) update();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -288,6 +301,12 @@ void WSplatViewPrivate::init()
     QObject::connect(&statsTimer, SIGNAL(timeout()), q, SLOT(onStats()));
 
     statsTimer.start();
+
+    motionTimer.setSingleShot(true);
+
+    motionTimer.setInterval(100);
+
+    QObject::connect(&motionTimer, SIGNAL(timeout()), q, SLOT(update()));
 }
 
 //-------------------------------------------------------------------------------------------------

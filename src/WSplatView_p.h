@@ -160,6 +160,9 @@ public: // Variables
 
     QTimer statsTimer;
 
+    // NOTE: Requests a frame once the camera stopped, see WSplatViewRenderer::synchronize.
+    QTimer motionTimer;
+
     qint64 statsFrames;
     qint64 statsTime;
 

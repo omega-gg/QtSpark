@@ -190,11 +190,21 @@ Readback timing per backend:
 | Backend | Completed callback |
 |---|---|
 | OpenGL | same frame, `glReadPixels` blocks the render thread |
-| D3D11 | next frame |
+| D3D11 | when a poll finds the copy done, usually 1 to 3 frames later |
 | Vulkan, D3D12, Metal | when the frame slot is reused, about 2 frames later |
 
-While a readback or sort is pending, `needsUpdate()` is true and the view keeps requesting frames.
-Without new frames the callbacks never run.
+- **D3D11:** QRhi ends a D3D11 readback with a blocking `Map` at the next frame. The CPU queues a
+  few frames ahead, so that `Map` waited for all of them: 90 to 200 ms freezes on large scenes.
+  `WSplatReadback::requestNative` copies the rows into staging textures through the native
+  device, and `pollNative` maps them with `D3D11_MAP_FLAG_DO_NOT_WAIT` every frame. This is what
+  WebGL2 does for Spark: a copy into a buffer, then a fence polled every frame (three.js
+  `probeAsync`).
+- **Frames:** while a readback or sort is pending, `needsUpdate()` is true and the view requests
+  frames, since without new frames the callbacks never run. But only while the camera is still:
+  when it moves, whoever moves it already requests the next frame, and one more would render the
+  same pose twice. On Vulkan and D3D12 that duplicated every other frame, so the motion jumped by
+  two poses, then stood still. `WSplatViewPrivate::motionTimer` restarts on every move and
+  requests one frame 100 ms after the last, so a pending sort still completes.
 
 ### 5. Draw
 

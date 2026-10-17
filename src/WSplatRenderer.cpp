@@ -124,6 +124,8 @@ static QMatrix4x4 composeMatrix(const QVector3D & position, const QQuaternion & 
 
 WSplatReadback::~WSplatReadback()
 {
+    releaseNative();
+
     qDeleteAll(results);
 }
 
@@ -884,14 +886,21 @@ void WSplatRendererPrivate::driveSort(QRhiCommandBuffer * cb)
         return;
     }
 
-    QRhiResourceUpdateBatch * batch = rhi->nextResourceUpdateBatch();
-
     WSplatSortJob * sortJob = job;
 
-    job->metric.request(batch, current->target3, current->size, numSplats, sizeof(quint32),
-                        [this, sortJob]() { startSort(sortJob); });
+    std::function<void()> completed = [this, sortJob]() { startSort(sortJob); };
 
-    cb->resourceUpdate(batch);
+    // NOTE: On D3D11 the QRhi readback ends with a blocking Map, so we poll our own copies.
+    if (job->metric.requestNative(rhi, cb, current->target3, current->size, numSplats,
+                                  sizeof(quint32), completed) == false)
+    {
+        QRhiResourceUpdateBatch * batch = rhi->nextResourceUpdateBatch();
+
+        job->metric.request(batch, current->target3, current->size, numSplats, sizeof(quint32),
+                            completed);
+
+        cb->resourceUpdate(batch);
+    }
 
     if (job->metric.isPending() == false) startSort(job);
 }
@@ -1126,6 +1135,8 @@ void WSplatRendererPrivate::waitPending()
     //       readback is still alive.
     if (pending) rhi->finish();
 
+    if (job) job->metric.pollNative(true);
+
     if (job)
     {
         jobs.append(job);
@@ -1251,6 +1262,9 @@ void WSplatRenderer::render(QRhiCommandBuffer * cb, QRhiRenderTarget * renderTar
     if (uploads == NULL) uploads = d->rhi->nextResourceUpdateBatch();
 
     if (d->splatsDirty) d->uploadSplats(uploads);
+
+    // SPARK: three.js probeAsync, the readback fence is polled every frame.
+    if (d->job) d->job->metric.pollNative();
 
     d->pollSort(uploads);
 

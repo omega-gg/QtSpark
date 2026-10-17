@@ -101,6 +101,16 @@ struct WSplatReadback
                  const WSplatTextureSize & size, int count, int texelSize,
                  const std::function<void()> & completed = std::function<void()>());
 
+    // NOTE: Direct3D 11 only, returns false on other backends. See WSplatReadbackD3D11.cpp.
+    bool requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
+                       const WSplatTextureSize & size, int count, int texelSize,
+                       const std::function<void()> & completed);
+
+    // NOTE: Called every frame, 'wait' blocks until the copies are done.
+    void pollNative(bool wait = false);
+
+    void releaseNative();
+
     bool isPending() const;
 
     QVector<QRhiReadbackResult *> results;
@@ -108,6 +118,23 @@ struct WSplatReadback
     int pendingLayers = 0;
 
     QByteArray data;
+
+    // NOTE: Direct3D 11 staging textures, as void pointers to keep d3d11.h out of this header.
+    struct Native
+    {
+        void * staging;
+
+        qint64 offset;
+        int    rows;
+    };
+
+    QVector<Native> natives;
+
+    void * nativeContext = NULL;
+
+    int nativeTexelSize = 0;
+
+    std::function<void()> nativeCompleted;
 };
 
 //-------------------------------------------------------------------------------------------------

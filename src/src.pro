@@ -38,6 +38,7 @@ SOURCES += WSplatMath.cpp \
            WSplatAccumulator.cpp \
            WSplatRenderer.cpp \
            WSplatRendererCapture.cpp \
+           WSplatReadbackD3D11.cpp \
            WSplatControls.cpp \
            WSplatView.cpp
 
