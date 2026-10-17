@@ -1,0 +1,29 @@
+# Upstream Spark files tracked by the port, and where they are ported.
+#
+# Format: <upstream path> <port path>[,<port path>...]
+# Read by tools/resync.sh. Keep it sorted by upstream path. See doc/resync.md.
+
+rust/Cargo.lock                         src/WSplatMath.cpp
+rust/spark-lib/src/decoder.rs           src/WSplatReceiver.h,src/WSplatLoader.cpp
+rust/spark-lib/src/ply.rs               src/WSplatPly.cpp
+rust/spark-lib/src/splat_encode.rs      src/WPackedSplats.cpp
+rust/spark-lib/src/spz.rs               src/WSplatSpz.cpp
+rust/spark-rs/src/lib.rs                src/WSplatSort.cpp
+rust/spark-rs/src/packed_splats.rs      src/WPackedSplats.cpp
+rust/spark-rs/src/sort.rs               src/WSplatSort.cpp
+src/PackedSplats.ts                     src/shaders/packedSH.glsl,src/shaders/accumulate.frag,src/WSplatRenderer.cpp
+src/SparkRenderer.ts                    src/WSplatRenderer.cpp,src/WSplatRenderer.h,src/shaders/splatUniforms.glsl
+src/SplatAccumulator.ts                 src/WSplatAccumulator.cpp,src/shaders/accumulate.frag
+src/SplatGenerator.ts                   src/shaders/accumulate.frag,src/WSplatRenderer.cpp
+src/SplatGeometry.ts                    src/WSplatRenderer.cpp
+src/SplatLoader.ts                      src/WSplatLoader.cpp
+src/SplatMesh.ts                        src/shaders/accumulate.frag,src/WSplatRenderer.cpp
+src/controls.ts                         src/WSplatControls.cpp,src/WSplatControls.h
+src/defines.ts                          src/Splat.h
+src/dyno/output.ts                      src/shaders/accumulate.frag
+src/dyno/splats.ts                      src/shaders/accumulate.frag
+src/shaders/computeUvec4_Vec4.glsl      src/shaders/accumulate.frag
+src/shaders/splatDefines.glsl           src/shaders/splatDefines.glsl
+src/shaders/splatFragment.glsl          src/shaders/splat.frag
+src/shaders/splatVertex.glsl            src/shaders/splat.vert
+src/utils.ts                            src/WPackedSplats.cpp

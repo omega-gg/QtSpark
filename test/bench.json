@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "Benchmark scenes shared by test/reference/bench.mjs (Spark) and splattest --bench (native).",
+    "Each run first replays poses 0..warmup-1 (wrapping modulo frames) unmeasured, then measures",
+    "poses i = 0..frames-1. Orbit pose for pose i:",
+    "  a = 2 * pi * turns * i / frames",
+    "  position = center + (radius * sin(a), height, radius * cos(a))",
+    "  orientation = three.js lookAt(center): camera -Z toward the center, up +Y",
+    "Camera: perspective, vertical fov 60 degrees, near 0.01, far 1000, aspect width / height.",
+    "Scenes whose file is missing from build/fixtures are skipped (optional: true)."
+  ],
+  "frames": 600,
+  "warmup": 60,
+  "camera": { "fov": 60, "near": 0.01, "far": 1000 },
+  "scenes": [
+    {
+      "name": "furry",
+      "file": "furry-logo-pedestal.spz",
+      "mesh": { "position": [0, 0, 0], "quaternion": [1, 0, 0, 0], "scale": 1 },
+      "path": { "type": "orbit", "center": [0, 0, 0], "radius": 5, "height": 0.8, "turns": 1 }
+    },
+    {
+      "name": "butterfly",
+      "file": "butterfly.spz",
+      "mesh": { "position": [0, 0, 0], "quaternion": [1, 0, 0, 0], "scale": 1 },
+      "path": { "type": "orbit", "center": [0, 0, 0], "radius": 2.5, "height": 0.4, "turns": 1 }
+    },
+    {
+      "name": "synthetic-sh3",
+      "file": "synthetic-sh3.ply",
+      "mesh": { "position": [0, 0, 0], "quaternion": [0, 0, 0, 1], "scale": 1 },
+      "path": { "type": "orbit", "center": [0, 0, 0], "radius": 4, "height": 1, "turns": 1 }
+    },
+    {
+      "name": "large",
+      "file": "large.spz",
+      "optional": true,
+      "mesh": { "position": [0, 0, 0], "quaternion": [1, 0, 0, 0], "scale": 1 },
+      "path": { "type": "orbit", "center": [0, 0, 0], "radius": 6, "height": 1.5, "turns": 1 }
+    }
+  ]
+}

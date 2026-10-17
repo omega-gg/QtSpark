@@ -1,0 +1,12 @@
+/bin/
+/lib/
+/build/
+Makefile*
+*.o
+*.qsb
+.qmake.stash
+*.pro.user*
+object_script.*
+debug/
+release/
+node_modules/

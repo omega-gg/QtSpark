@@ -1,0 +1,17 @@
+{
+  "name": "splat-reference",
+  "private": true,
+  "type": "module",
+  "description": "Runs the real Spark in Chromium to produce reference dumps and benchmarks",
+  "scripts": {
+    "fixtures": "node fixtures.mjs",
+    "reference": "node reference.mjs",
+    "bench": "node bench.mjs",
+    "viewer": "node viewer.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.64.1",
+    "pngjs": "7.0.0",
+    "three": "0.180.0"
+  }
+}
