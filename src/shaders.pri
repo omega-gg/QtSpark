@@ -11,7 +11,8 @@ SPLAT_SHADERS = $$PWD/shaders/accumulate.vert \
                 $$PWD/shaders/splat.frag
 
 SPLAT_SHADER_INCLUDES = $$PWD/shaders/splatDefines.glsl \
-                        $$PWD/shaders/packedSH.glsl
+                        $$PWD/shaders/packedSH.glsl \
+                        $$PWD/shaders/splatUniforms.glsl
 
 QSB = $$shell_path($$[QT_HOST_BINS]/qsb)
 

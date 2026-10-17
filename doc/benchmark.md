@@ -67,10 +67,14 @@ Sorting and loading, D3D11 (Vulkan is similar):
 Measured on the large scene at boosted clocks: about 4.5 ms of vertex shading, 5 to 7 ms of
 triangle setup for millions of sub-pixel quads, and 3 to 4 ms of fill at 1080p.
 
-- **A projection pass:** compute each splat's projected ellipse once per frame, in a fullscreen
-  pass like the accumulator, instead of 4 times (once per quad vertex). That saves about 3 ms of
-  the 4.5 ms of vertex shading on 2M splats. The upstream body of `splatVertex.glsl` would move
-  into one include shared by both paths, to keep resyncs simple.
+- **Tried and dropped: a projection pass.**
+  - **What it did:** a fullscreen pass computed each splat's projected ellipse once per frame,
+    into integer targets, and the vertex shader only placed the quad corners. The image was bit
+    identical on every backend.
+  - **Why it was dropped:** it was slower. On 2M splats it took 32.9 against 31.8 ms at 1080p,
+    and 6.1 to 8.8 against 5.6 to 6.0 ms at 480x270, in ABBA runs on D3D11. Writing and reading
+    52 bytes per splat costs more than the vertex shading it saves. It also split
+    `splatVertex.glsl` away from the upstream structure, so it was not kept.
 - **Rendering without the intermediate texture:** draw directly into the window
   (`QQuickWindow::beforeRenderPassRecording`) instead of through `QQuickRhiItem`'s texture. That
   saves a full screen copy and a depth buffer per frame.

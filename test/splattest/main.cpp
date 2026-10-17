@@ -93,6 +93,9 @@ int main(int argc, char * argv[])
 
     QCommandLineOption faithfulOption("faithful", "Disable the Splat performance options.");
 
+    QCommandLineOption disableOption("disable", "Disable some performance options: tightBounds,"
+                                     " cpuSortMetric, fastSort (comma separated).", "options");
+
     QCommandLineOption sortBenchOption("sort-bench", "Time the sorts on random metrics.");
 
     QCommandLineOption adapterOption("adapter", "D3D adapter or Vulkan physical device index.",
@@ -101,7 +104,8 @@ int main(int argc, char * argv[])
     parser.addOptions({ backendOption, scenesOption, fixturesOption, referenceOption,
                         outputOption, sceneOption, psnrOption, benchOption, widthOption,
                         heightOption, framesOption, repeatsOption,
-                        adapterOption, faithfulOption, sortBenchOption });
+                        adapterOption, faithfulOption, disableOption,
+                        sortBenchOption });
 
     parser.process(application);
 
@@ -121,6 +125,19 @@ int main(int argc, char * argv[])
         context.options.tightBounds   = false;
         context.options.cpuSortMetric = false;
         context.options.fastSort      = false;
+    }
+
+    for (const QString & name : parser.value(disableOption).split(',', Qt::SkipEmptyParts))
+    {
+        if      (name == "tightBounds")   context.options.tightBounds   = false;
+        else if (name == "cpuSortMetric") context.options.cpuSortMetric = false;
+        else if (name == "fastSort")      context.options.fastSort      = false;
+        else
+        {
+            qWarning("Unknown option %s.", name.toUtf8().constData());
+
+            return 2;
+        }
     }
 
     // NOTE: Read by the Qt D3D11, D3D12 and Vulkan backends when they pick the adapter.
