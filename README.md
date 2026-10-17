@@ -57,7 +57,7 @@ The viewer also has O (open), R (reset camera) and 1 / 2 / 3 (OpenCV / OpenGL / 
 ## Documentation
 
 - [doc/plan.md](doc/plan.md): the plan.
-- [doc/implementation.md](doc/implementation.md): how it works, file by file.
+- [implementation.md](implementation.md): how it works, file by file.
 - [doc/resync.md](doc/resync.md): how to follow upstream Spark.
 - [doc/benchmark.md](doc/benchmark.md): performance against Spark in the browser.
 - [test/reference/README.md](test/reference/README.md): comparing with the real Spark, and the

@@ -92,7 +92,7 @@ upstream/
   files.txt                   tracked upstream file -> our file mapping (read by tools/resync.sh)
   generated/                  Spark runtime snapshots (generated accumulator GLSL) for diffing
 tools/resync.sh               diff of tracked upstream files between the pin and a new ref
-doc/plan.md, doc/implementation.md, doc/resync.md
+implementation.md, doc/plan.md, doc/resync.md
 LICENSE, LICENSE.spark        Spark MIT notice kept for the ported code
 ```
 
@@ -283,7 +283,7 @@ our native RHI backends.
 ## Docs
 
 - `doc/plan.md`: this plan, without local paths.
-- `doc/implementation.md`: the pipeline in detail, with data layouts, thread model, frame flow, the
+- `implementation.md`: the pipeline in detail, with data layouts, thread model, frame flow, the
   accumulator rotation state machine, per-backend notes (scissor, readback timing, GL stall), shader
   walkthrough, controls and the deviations from Spark.
 - `doc/resync.md`: as above.

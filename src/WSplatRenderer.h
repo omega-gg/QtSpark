@@ -114,7 +114,7 @@ struct WSplatRenderOptions
     int minSortIntervalMs = 0;
 
     // NOTE: Splat performance options, off by default: the defaults are the exact Spark code
-    //       path. Each option keeps the image, see doc/implementation.md "Performance options".
+    //       path. Each option keeps the image, see implementation.md "Performance options".
 
     // NOTE: Empty quad culling: quads whose bounds hold no pixel center are not rasterized (most
     //       splats of large scenes are below a pixel). The output is bit identical.

@@ -34,7 +34,7 @@ the GPU time and the p95 of the frame interval (how much it stutters).
 
 ## Results with `--fast` (2026-10-17)
 
-The Splat performance options on (`SplatView.fast`, see implementation.md). Same image.
+The Splat performance options on (`SplatView.fast`, see ../implementation.md). Same image.
 
 Wall time per frame, ms (lower is better):
 
@@ -115,7 +115,7 @@ The next section explains and fixes the gap.
 formulas and the unused sRGB conversion. ANGLE's HLSL compiles to the same DXBC, so Spark pays
 this cost too.
 
-**Fix.** `[[dont_flatten]]` on the two branches (see `doc/implementation.md`, Shaders). The
+**Fix.** `[[dont_flatten]]` on the two branches (see `implementation.md`, Shaders). The
 images are byte identical. GPU time, synthetic at 1440p: D3D11 from 23.5 to 18.8 ms, D3D12 from
 22.4 to 19.5 ms, Vulkan unchanged at 18.2 ms.
 
