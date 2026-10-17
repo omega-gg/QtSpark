@@ -1,5 +1,6 @@
 #version 440
 #extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_control_flow_attributes : require
 
 // SPARK v2.3.1: src/shaders/splatFragment.glsl
 //
@@ -7,6 +8,9 @@
 //       - Uniforms live in splatUniforms.glsl, varyings have explicit locations.
 //       - PREMULTIPLIED_ALPHA is always defined (SparkRenderer premultipliedAlpha: true).
 //       - three.js logdepthbuf chunks are cut.
+//       - [[dont_flatten]] on the falloff and encodeLinear branches. The math is unchanged, but
+//         fxc keeps real branches instead of evaluating both sides. On D3D this halves the cost
+//         of the fragment shader.
 
 precision highp float;
 precision highp int;
@@ -42,7 +46,8 @@ void main() {
         rgba.a = mix(min1a, min1a * exp(exponent), falloff);
     } else {
         // New falloff function, more or less equivalent
-        if (rgba.a <= 1.0) {
+        // SPLAT: [[dont_flatten]]
+        [[dont_flatten]] if (rgba.a <= 1.0) {
             rgba.a = mix(rgba.a, rgba.a * exp(-0.5 * z2), falloff);
         } else {
             float a = exp((rgba.a*rgba.a - 1.0) / 2.718281828459045);
@@ -54,7 +59,8 @@ void main() {
     if (rgba.a < minAlpha) {
         discard;
     }
-    if (encodeLinear) {
+    // SPLAT: [[dont_flatten]]
+    [[dont_flatten]] if (encodeLinear) {
         rgba.rgb = srgbToLinear(rgba.rgb);
     }
 

@@ -229,6 +229,13 @@ into `:/splat/shaders/*.qsb`:
   `GL_GOOGLE_include_directive`.
 - **`splatDefines.glsl`:** a verbatim copy of upstream, apart from a header comment.
 - **`packedSH.glsl`:** the three `defineEvalPackedSH*` template strings, verbatim.
+- **Branches on D3D:** fxc flattens small `if` / `else` blocks into selects, so both sides run
+  for every pixel. In `splat.frag` that is the two falloff formulas and the sRGB conversion,
+  about ten transcendental operations where one or two are needed. The NVIDIA D3D driver does not
+  restore the branches, unlike its Vulkan compiler. `[[dont_flatten]]`
+  (`GL_EXT_control_flow_attributes`) on these two branches becomes `[branch]` in the HLSL. The
+  math is unchanged and the images are byte identical, but the fragment shader costs half as
+  much on D3D11 and D3D12. ANGLE flattens them too, so Spark pays this cost on Windows.
 
 ### 7. Threads (QQuickRhiItem)
 
@@ -312,6 +319,8 @@ Each deviation is deliberate and small:
 - **Mesh:** a single mesh per view. Spark's multi mesh mapping reduces to one generator at base 0.
 - **Shaders:** `readPackedArray` takes `inout Gsplat` (`out` upstream), and `readPackedSplat`
   zero-initializes its struct. HLSL rejects an `out` parameter left unwritten on one branch.
+  `splat.frag` marks its falloff and `encodeLinear` branches `[[dont_flatten]]` (see
+  [Shaders](#6-shaders)).
 
 ## Performance options
 
