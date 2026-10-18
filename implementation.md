@@ -394,9 +394,11 @@ single ones, for A/B runs.
     gain.
 - **`cpuSortMetric`:** the sort metric (`outputSplatDepth`: the world center minus the view
   origin, as a length) is computed on the sort thread instead of being read back from the GPU.
-  - It uses the float centers decoded once at load (`WPackedSplats::finish`) and the transform
-    the accumulator was generated with.
+  - It reads the half float centers from the packed splats, as the GPU does, with the transform
+    the accumulator was generated with. Nothing extra is stored.
   - The sort starts in the same frame, without waiting for a readback.
+  - It is only valid while the GPU does not move the splats (edits, animation, LoD), so it is a
+    fallback and a debugging aid, which isolates the readback, not the main path.
   - The order is the same as with the readback, up to float rounding between ties.
   - The accumulator still writes the metric attachment, so `splattest` can compare it.
 - **`fastSort`:** a faster radix sort, `WSplatSort::sort32SplatsFast`, plus a multithreaded CPU

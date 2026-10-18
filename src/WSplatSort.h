@@ -70,9 +70,9 @@ public: // Static functions
                             quint32 * ordering);
 
     // NOTE: Splat only: the sort metric of the accumulator pass computed on the CPU, written as
-    //       float bits like the readback. 'packed' gives the active flags (zero scales are
-    //       inactive, +INF), 'centers' the object space centers. 'rotate' is (x, y, z, w).
-    static void computeMetrics(int numSplats, const quint32 * packed, const float * centers,
+    //       float bits like the readback. 'packed' gives the centers and the active flags (zero
+    //       scales are inactive, +INF). 'rotate' is (x, y, z, w).
+    static void computeMetrics(int numSplats, const quint32 * packed,
                                float scale, const float * rotate, const float * translate,
                                const float * viewCenter, const float * viewDir, bool sortRadial,
                                quint32 * metrics, int threads = 1);

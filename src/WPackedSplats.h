@@ -101,9 +101,6 @@ public: // Static functions
 public: // WSplatReceiver implementation
     /* virtual */ bool initSplats(const WSplatInit & init);
 
-    // NOTE: Splat only: decodes the float centers for the CPU sort metric.
-    /* virtual */ void finish();
-
     /* virtual */ void setEncoding(const WSplatEncoding & encoding);
 
     /* virtual */ void setBatch(int base, int count, const WSplatProps & batch);
@@ -140,10 +137,6 @@ public: // Variables
     QVector<quint32> sh1;    // maxSplats * 2, empty when maxShDegree < 1
     QVector<quint32> sh2;    // maxSplats * 4, empty when maxShDegree < 2
     QVector<quint32> sh3;    // maxSplats * 4, empty when maxShDegree < 3
-
-    // NOTE: Splat only: the object space centers decoded from the packed half floats, exactly
-    //       what the GPU reads (numSplats * 3). Filled by finish().
-    QVector<float> centers;
 };
 
 #endif // WPACKEDSPLATS_H

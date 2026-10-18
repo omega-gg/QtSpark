@@ -30,6 +30,8 @@
 
 // Qt includes
 #include <QThreadPool>
+#include <QFloat16>
+#include <QtEndian>
 #include <QSemaphore>
 
 // C++ includes
@@ -224,8 +226,7 @@ void WSplatSort32Buffers::ensureSize(int maxSplats)
 }
 
 // SPARK: TransformGsplat (center) and OutputSplatDepth (dyno/splats.ts, dyno/output.ts)
-/* static */ void WSplatSort::computeMetrics(int numSplats, const quint32 * packed,
-                                             const float * centers, float scale,
+/* static */ void WSplatSort::computeMetrics(int numSplats, const quint32 * packed, float scale,
                                              const float * rotate, const float * translate,
                                              const float * viewCenter, const float * viewDir,
                                              bool sortRadial, quint32 * metrics, int threads)
@@ -249,11 +250,13 @@ void WSplatSort32Buffers::ensureSize(int maxSplats)
                 continue;
             }
 
-            const float * center = centers + i * 3;
+            // NOTE: The center is the three half floats after the color word, as the GPU reads
+            //       them (unpackHalf2x16). Half to float is exact.
+            const uchar * center = reinterpret_cast<const uchar *> (packed + i * 4 + 1);
 
-            float x = center[0] * scale;
-            float y = center[1] * scale;
-            float z = center[2] * scale;
+            float x = float(qFromUnaligned<qfloat16>(center))     * scale;
+            float y = float(qFromUnaligned<qfloat16>(center + 2)) * scale;
+            float z = float(qFromUnaligned<qfloat16>(center + 4)) * scale;
 
             // quatVec: t = 2 * cross(q.xyz, v), v + q.w * t + cross(q.xyz, t)
             float tx = 2.0f * (qy * z - qz * y);

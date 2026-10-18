@@ -120,9 +120,10 @@ struct WSplatRenderOptions
     //       splats of large scenes are below a pixel). The output is bit identical.
     bool tightBounds = false;
 
-    // NOTE: The sort metric is computed on the CPU from the splat centers, with the transform of
+    // NOTE: The sort metric is computed on the CPU from the packed centers, with the transform of
     //       the accumulator, instead of being read back from the GPU. The sort starts at once and
-    //       the GPU readback stall (OpenGL, Direct3D 11) is gone. The order is the same.
+    //       the order is the same. Only valid while the GPU does not move the splats (edits,
+    //       animation, LoD), it is a fallback and a debugging aid: it isolates the readback.
     bool cpuSortMetric = false;
 
     // NOTE: A faster radix sort (11 bit digits, several threads) and a multithreaded CPU metric.

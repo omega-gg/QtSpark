@@ -589,27 +589,6 @@ void WPackedSplats::checkCanceled() const
 // WSplatReceiver implementation
 //-------------------------------------------------------------------------------------------------
 
-/* virtual */ void WPackedSplats::finish()
-{
-    checkCanceled();
-
-    centers.resize(qsizetype(numSplats) * 3);
-
-    const quint32 * data = packed.constData();
-
-    float * center = centers.data();
-
-    for (int i = 0; i < numSplats; i++)
-    {
-        center[0] = halfToFloat(data[1] & 0xffff);
-        center[1] = halfToFloat(data[1] >> 16);
-        center[2] = halfToFloat(data[2] & 0xffff);
-
-        data   += 4;
-        center += 3;
-    }
-}
-
 // SPARK: PackedSplatsData::init_splats
 /* virtual */ bool WPackedSplats::initSplats(const WSplatInit & init)
 {

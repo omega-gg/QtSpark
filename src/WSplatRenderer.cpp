@@ -952,11 +952,7 @@ void WSplatRendererPrivate::driveSort(QRhiCommandBuffer * cb)
     job->timer.start();
 
     // NOTE: The CPU sort metric skips the readback, see WSplatRenderOptions::cpuSortMetric.
-    if (options.cpuSortMetric
-        &&
-        splats
-        &&
-        splats->centers.count() >= qsizetype(numSplats) * 3)
+    if (options.cpuSortMetric && splats)
     {
         job->splats   = splats;
         job->uniforms = current->uniforms;
@@ -1008,7 +1004,6 @@ void WSplatRendererPrivate::startSort(WSplatSortJob * job)
             const WSplatAccumulateUniforms & uniforms = job->uniforms;
 
             WSplatSort::computeMetrics(job->numSplats, job->splats->packed.constData(),
-                                       job->splats->centers.constData(),
                                        uniforms.translateScale[3], uniforms.rotate,
                                        uniforms.translateScale, uniforms.viewCenter,
                                        uniforms.viewDir, uniforms.sortRadial, metric,
