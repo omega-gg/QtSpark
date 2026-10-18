@@ -25,6 +25,8 @@ bin/splatviewer scene.spz --backend vulkan
 bin/msvc/splatviewer scene.spz --backend d3d12
 ```
 
+Without `--backend`, the viewer uses the Qt default (Direct3D 11 on Windows).
+
 `QT_MINGW`, `QT_MSVC`, `MINGW_DIR`, `VCVARS` and `JOM` override the tool locations.
 
 ## Test

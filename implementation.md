@@ -316,6 +316,10 @@ SplatView {
 | Read only | `status` (Null, Loading, Ready, Error), `error`, `splatCount`, `activeSplats`, `fps`, `sortTime`, `readbackTime`, `loadTime`, `backendName` |
 | Methods | `resetCamera()`, `lookAt(point)` |
 
+`backgroundColor` accepts alpha: with a translucent color (`"transparent"`), the scene blends
+over the items behind the view, soft splat edges included. Qt Quick only adds that blend when the
+alpha is below 255.
+
 The application registers the type with
 `qmlRegisterType<WSplatView>("Splat", 1, 0, "SplatView")`. The backend is chosen by Qt Quick
 (`QSG_RHI_BACKEND`, or `QQuickWindow::setGraphicsApi`). For OpenGL, request a 4.3 core context (see
