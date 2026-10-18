@@ -295,7 +295,7 @@ do not move the camera. Switching modes resets the camera.
 |---|---|
 | Left drag | orbit around the target |
 | Right drag, Ctrl / Shift + left drag | pan the target in the view plane |
-| Middle drag, wheel | dolly (one notch = x0.95) |
+| Middle drag, wheel | dolly (one notch = x0.95), the wheel also during a drag, unlike three.js |
 
 Qt keys follow the keyboard layout (on AZERTY, forward is Z), while browser key codes are physical
 keys.

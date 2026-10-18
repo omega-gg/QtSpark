@@ -130,10 +130,10 @@ void WSplatOrbitControls::mouseRelease(QMouseEvent * event)
 // THREE: onMouseWheel, _handleMouseWheel
 // NOTE: _customWheelEvent zooms 10 times faster for browser pinch gestures, which arrive as wheel
 //       events with a synthetic Ctrl. Qt delivers pinches as gesture events, so it is left out.
+// SPLAT: The wheel also zooms during a drag, like Spark's PointerControls. three.js ignores it
+//        then, so that its start and end events do not split the drag, and we have no events.
 void WSplatOrbitControls::wheel(QWheelEvent * event)
 {
-    if (state != None) return;
-
     float deltaY = WSplatPointerControls::wheelPixels(event).y();
 
     // NOTE: Scrolling up zooms in (_dollyIn), down zooms out (_dollyOut).
