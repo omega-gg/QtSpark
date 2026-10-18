@@ -40,6 +40,7 @@ SOURCES += WSplatMath.cpp \
            WSplatRenderer.cpp \
            WSplatRendererCapture.cpp \
            WSplatReadbackD3D11.cpp \
+           WSplatReadbackGL.cpp \
            WSplatControls.cpp \
            WSplatOrbitControls.cpp \
            WSplatView.cpp

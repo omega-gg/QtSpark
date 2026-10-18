@@ -50,12 +50,9 @@
 // WSplatReadback
 //-------------------------------------------------------------------------------------------------
 
-bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
-                                   const WSplatTextureSize & size, int count, int texelSize,
-                                   const std::function<void()> & completed)
+bool WSplatReadback::requestD3D11(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
+                                  const WSplatTextureSize & size, int count, int texelSize)
 {
-    if (rhi->backend() != QRhi::D3D11) return false;
-
     const QRhiD3D11NativeHandles * handles
         = static_cast<const QRhiD3D11NativeHandles *> (rhi->nativeHandles());
 
@@ -102,7 +99,7 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
         {
             qWarning("WSplatReadback: Failed to create a staging texture.");
 
-            releaseNative();
+            releaseD3D11();
 
             return false;
         }
@@ -110,6 +107,7 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
         Native native;
 
         native.staging = staging;
+        native.buffer  = 0;
         native.layer   = layer;
         native.offset  = qint64(layerBase) * texelSize;
         native.rows    = layerYEnd;
@@ -123,7 +121,6 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
 
     nativeContext   = context;
     nativeTexelSize = texelSize;
-    nativeCompleted = completed;
 
     // NOTE: Runs the commands recorded so far (the accumulator pass), so the copies come after.
     cb->beginExternal();
@@ -144,14 +141,11 @@ bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTextu
     return true;
 }
 
-// NOTE: Called every frame on the render thread, like three.js probeAsync.
-void WSplatReadback::pollNative(bool wait)
+// NOTE: Called every frame on the render thread, like three.js probeAsync. Returns true once
+//       every copy is in.
+bool WSplatReadback::pollD3D11()
 {
-    if (natives.isEmpty()) return;
-
     ID3D11DeviceContext * context = static_cast<ID3D11DeviceContext *> (nativeContext);
-
-    UINT flags = (wait) ? 0 : D3D11_MAP_FLAG_DO_NOT_WAIT;
 
     int rowBytes = SPLAT_TEX_WIDTH * nativeTexelSize;
 
@@ -163,7 +157,8 @@ void WSplatReadback::pollNative(bool wait)
 
         D3D11_MAPPED_SUBRESOURCE mapped;
 
-        HRESULT result = context->Map(staging, 0, D3D11_MAP_READ, flags, &mapped);
+        HRESULT result = context->Map(staging, 0, D3D11_MAP_READ, D3D11_MAP_FLAG_DO_NOT_WAIT,
+                                      &mapped);
 
         if (result == DXGI_ERROR_WAS_STILL_DRAWING) continue;
 
@@ -191,17 +186,10 @@ void WSplatReadback::pollNative(bool wait)
         pendingLayers--;
     }
 
-    if (pendingLayers == 0 && nativeCompleted)
-    {
-        std::function<void()> completed = nativeCompleted;
-
-        nativeCompleted = std::function<void()>();
-
-        completed();
-    }
+    return natives.isEmpty();
 }
 
-void WSplatReadback::releaseNative()
+void WSplatReadback::releaseD3D11()
 {
     for (const Native & native : natives)
     {
@@ -211,8 +199,6 @@ void WSplatReadback::releaseNative()
     }
 
     natives.clear();
-
-    nativeCompleted = std::function<void()>();
 }
 
 #else
@@ -221,15 +207,17 @@ void WSplatReadback::releaseNative()
 // WSplatReadback
 //-------------------------------------------------------------------------------------------------
 
-bool WSplatReadback::requestNative(QRhi *, QRhiCommandBuffer *, QRhiTexture *,
-                                   const WSplatTextureSize &, int, int,
-                                   const std::function<void()> &)
+bool WSplatReadback::requestD3D11(QRhi *, QRhiCommandBuffer *, QRhiTexture *,
+                                  const WSplatTextureSize &, int, int)
 {
     return false;
 }
 
-void WSplatReadback::pollNative(bool) {}
+bool WSplatReadback::pollD3D11()
+{
+    return true;
+}
 
-void WSplatReadback::releaseNative() {}
+void WSplatReadback::releaseD3D11() {}
 
 #endif

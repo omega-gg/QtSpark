@@ -15,7 +15,7 @@ usage()
     echo ""
     echo "Options:"
     echo "  --scene a,b          Scenes from test/bench.json (default all)."
-    echo "  --backends \"a b\"     Viewer backends (default \"d3d12 d3d11 vulkan\")."
+    echo "  --backends \"a b\"     Viewer backends (default \"d3d12 d3d11 vulkan opengl\")."
     echo "  --no-spark           Skip Spark."
     echo "  --kit mingw | msvc   Viewer build (default msvc, the only one with D3D12)."
     echo "  --size WxH           Window size (default 2560x1440)."
@@ -34,7 +34,7 @@ case "$preset" in quick|full) ;; *) usage ;; esac
 shift
 
 scene=""
-backends="d3d12 d3d11 vulkan"
+backends="d3d12 d3d11 vulkan opengl"
 spark=1
 kit="msvc"
 size="2560x1440"

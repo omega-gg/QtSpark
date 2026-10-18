@@ -178,6 +178,9 @@ Quick preset at 2560x1440, the median of 2 rounds after the warm-up (the rounds 
   (`tightBounds` keeps the gap). What remains is rasterizing and blending millions of overlapping
   splats, a difference between the NVIDIA driver paths. On large, D3D11 is the backend to use on
   this hardware.
+- **OpenGL on large:** about 15% behind Spark, GPU bound (51 ms of GPU time against 35 to 40 ms
+  on the other backends). Not the readback: with QRhi's blocking readback the GPU time is the
+  same (51.1 against 51.3 ms).
 
 ## Next levers for GPU bound scenes
 

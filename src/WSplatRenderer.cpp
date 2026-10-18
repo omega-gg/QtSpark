@@ -180,6 +180,63 @@ void WSplatReadback::request(QRhiResourceUpdateBatch * batch, QRhiTexture * text
     }
 }
 
+// NOTE: Direct3D 11 and OpenGL, see WSplatRenderer_p.h.
+bool WSplatReadback::requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
+                                   const WSplatTextureSize & size, int count, int texelSize,
+                                   const std::function<void()> & completed)
+{
+    QRhi::Implementation backend = rhi->backend();
+
+    bool requested = false;
+
+    if (backend == QRhi::D3D11)
+    {
+        requested = requestD3D11(rhi, cb, texture, size, count, texelSize);
+    }
+    else if (backend == QRhi::OpenGLES2)
+    {
+        requested = requestGL(rhi, cb, texture, size, count, texelSize);
+    }
+
+    if (requested == false) return false;
+
+    nativeRhi       = rhi;
+    nativeCompleted = completed;
+
+    return true;
+}
+
+// SPARK: three.js probeAsync, the readback is polled every frame.
+void WSplatReadback::pollNative(QRhiCommandBuffer * cb)
+{
+    if (natives.isEmpty()) return;
+
+    bool done = (nativeRhi->backend() == QRhi::D3D11) ? pollD3D11() : pollGL(cb);
+
+    if (done && nativeCompleted)
+    {
+        std::function<void()> completed = nativeCompleted;
+
+        nativeCompleted = std::function<void()>();
+
+        completed();
+    }
+}
+
+void WSplatReadback::releaseNative()
+{
+    if (natives.isEmpty() == false)
+    {
+        if (nativeRhi->backend() == QRhi::D3D11)
+        {
+            releaseD3D11();
+        }
+        else releaseGL();
+    }
+
+    nativeCompleted = std::function<void()>();
+}
+
 bool WSplatReadback::isPending() const
 {
     return (pendingLayers != 0);
@@ -913,7 +970,7 @@ void WSplatRendererPrivate::driveSort(QRhiCommandBuffer * cb)
 
     std::function<void()> completed = [this, sortJob]() { startSort(sortJob); };
 
-    // NOTE: On D3D11 the QRhi readback ends with a blocking Map, so we poll our own copies.
+    // NOTE: On D3D11 and OpenGL the QRhi readback blocks, so we poll our own copies.
     if (job->metric.requestNative(rhi, cb, current->target3, current->size, numSplats,
                                   sizeof(quint32), completed) == false)
     {
@@ -1165,7 +1222,8 @@ void WSplatRendererPrivate::waitPending()
 
     if (job)
     {
-        job->metric.pollNative(true);
+        // NOTE: Its result is dropped anyway.
+        job->metric.releaseNative();
 
         jobs.append(job);
 
@@ -1291,8 +1349,7 @@ void WSplatRenderer::render(QRhiCommandBuffer * cb, QRhiRenderTarget * renderTar
 
     if (d->splatsDirty) d->uploadSplats(uploads);
 
-    // SPARK: three.js probeAsync, the readback fence is polled every frame.
-    if (d->job) d->job->metric.pollNative();
+    if (d->job) d->job->metric.pollNative(cb);
 
     d->pollSort(uploads);
 

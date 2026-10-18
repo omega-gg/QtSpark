@@ -101,15 +101,29 @@ struct WSplatReadback
                  const WSplatTextureSize & size, int count, int texelSize,
                  const std::function<void()> & completed = std::function<void()>());
 
-    // NOTE: Direct3D 11 only, returns false on other backends. See WSplatReadbackD3D11.cpp.
+    // NOTE: The readback without a stall, like Spark's, on the backends where QRhi blocks:
+    //       Direct3D 11 (WSplatReadbackD3D11.cpp) and OpenGL (WSplatReadbackGL.cpp). Returns
+    //       false on the others, which use request(). pollNative is called every frame,
+    //       releaseNative drops the pending copies.
     bool requestNative(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
                        const WSplatTextureSize & size, int count, int texelSize,
                        const std::function<void()> & completed);
 
-    // NOTE: Called every frame, 'wait' blocks until the copies are done.
-    void pollNative(bool wait = false);
+    void pollNative(QRhiCommandBuffer * cb);
 
     void releaseNative();
+
+    bool requestD3D11(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
+                      const WSplatTextureSize & size, int count, int texelSize);
+
+    bool requestGL(QRhi * rhi, QRhiCommandBuffer * cb, QRhiTexture * texture,
+                   const WSplatTextureSize & size, int count, int texelSize);
+
+    bool pollD3D11();
+    bool pollGL(QRhiCommandBuffer * cb);
+
+    void releaseD3D11();
+    void releaseGL();
 
     bool isPending() const;
 
@@ -119,10 +133,12 @@ struct WSplatReadback
 
     QByteArray data;
 
-    // NOTE: Direct3D 11 staging textures, as void pointers to keep d3d11.h out of this header.
+    // NOTE: One copy per layer: a Direct3D 11 staging texture, or an OpenGL pixel buffer. The
+    //       native objects are kept as plain values, out of this header.
     struct Native
     {
-        void * staging;
+        void *  staging;
+        quint32 buffer;
 
         int    layer;
         qint64 offset;
@@ -131,7 +147,10 @@ struct WSplatReadback
 
     QVector<Native> natives;
 
+    QRhi * nativeRhi = NULL;
+
     void * nativeContext = NULL;
+    void * nativeFence   = NULL;
 
     int nativeTexelSize = 0;
 

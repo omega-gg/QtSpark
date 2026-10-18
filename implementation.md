@@ -186,7 +186,8 @@ new one waits for its own sort before it is displayed.
 `WSplatRendererPrivate::driveSort` is the port of `SparkRenderer.driveSort` and `readbackDepth`:
 
 1. One sort runs at a time. When an accumulator was generated, the metric of every layer is read
-   back with `QRhiResourceUpdateBatch::readBackTexture`, limited to the used rows.
+   back with `QRhiResourceUpdateBatch::readBackTexture`, limited to the used rows, or natively
+   on D3D11 and OpenGL (see below).
 2. The completed callback runs on the render thread. It starts the sort on a worker thread
    (`QtConcurrent`).
 3. The sort is `sort32`: two LSD radix passes of 16 bits on the inverted keys, which gives a
@@ -198,16 +199,17 @@ Readback timing per backend:
 
 | Backend | Completed callback |
 |---|---|
-| OpenGL | same frame, `glReadPixels` blocks the render thread |
-| D3D11 | when a poll finds the copy done, usually 1 to 3 frames later |
+| OpenGL, D3D11 | when a poll finds the copy done, usually 1 to 3 frames later |
 | Vulkan, D3D12, Metal | when the frame slot is reused, about 2 frames later |
 
-- **D3D11:** QRhi ends a D3D11 readback with a blocking `Map` at the next frame. The CPU queues a
-  few frames ahead, so that `Map` waited for all of them: 90 to 200 ms freezes on large scenes.
-  `WSplatReadback::requestNative` copies the rows into staging textures through the native
-  device, and `pollNative` maps them with `D3D11_MAP_FLAG_DO_NOT_WAIT` every frame. This is what
-  WebGL2 does for Spark: a copy into a buffer, then a fence polled every frame (three.js
-  `probeAsync`).
+- **D3D11 and OpenGL:** QRhi blocks there. A D3D11 readback ends with a blocking `Map` at the
+  next frame, and as the CPU queues a few frames ahead, it waited for all of them: 90 to 200 ms
+  freezes on large scenes. An OpenGL readback is a blocking `glReadPixels`. So
+  `WSplatReadback::requestNative` reads through the native API, like WebGL2 does for Spark
+  (three.js `readRenderTargetPixelsAsync`): a copy into staging textures on D3D11
+  (`WSplatReadbackD3D11.cpp`), or `glReadPixels` into pixel pack buffers and a fence on OpenGL and
+  OpenGL ES 3.0 (`WSplatReadbackGL.cpp`). `pollNative` checks them every frame without waiting,
+  like three.js `probeAsync`.
 - **Frames:** while a readback or sort is pending, `needsUpdate()` is true and the view requests
   frames, since without new frames the callbacks never run. But only while the camera is still:
   when it moves, whoever moves it already requests the next frame, and one more would render the
@@ -394,8 +396,7 @@ single ones, for A/B runs.
   origin, as a length) is computed on the sort thread instead of being read back from the GPU.
   - It uses the float centers decoded once at load (`WPackedSplats::finish`) and the transform
     the accumulator was generated with.
-  - The sort starts in the same frame, and the readback stalls are gone: a blocking
-    `glReadPixels` on OpenGL, and a blocking `Map` at the next frame on Direct3D 11.
+  - The sort starts in the same frame, without waiting for a readback.
   - The order is the same as with the readback, up to float rounding between ties.
   - The accumulator still writes the metric attachment, so `splattest` can compare it.
 - **`fastSort`:** a faster radix sort, `WSplatSort::sort32SplatsFast`, plus a multithreaded CPU
