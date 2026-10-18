@@ -61,10 +61,6 @@ struct WSplatLoadResult
 
     QString error;
 
-    // NOTE: A robust bounding sphere of the splat centers (object space), used by resetCamera.
-    QVector3D center;
-    float     radius = 0.0f;
-
     double loadMs = 0.0;
 };
 
@@ -121,9 +117,6 @@ public: // Variables
     QFutureWatcher<WSplatLoadResult> watcher;
 
     QSharedPointer<WPackedSplats> splats;
-
-    QVector3D boundsCenter;
-    float     boundsRadius;
 
     double loadMs;
 

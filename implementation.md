@@ -295,8 +295,10 @@ keys.
 - `OpenGL` is the identity.
 - `ZUp` is Spark's editor Z up preset.
 
-`resetCamera()` frames a robust bounding sphere of the centers: the median, and the 90th percentile
-distance. The harness viewer (`npm run viewer`) frames with the same rule.
+The camera starts like in Spark's `examples/viewer`: at (0, 0, 1) looking down -Z, and the viewer
+uses its 75 degree fov. Each loaded file starts there, like a file opened in Spark's viewer, and
+`resetCamera()` returns there.
+The harness viewer (`npm run viewer`) starts the same way.
 
 Timing, so that movement stays smooth:
 

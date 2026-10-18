@@ -36,11 +36,16 @@
 #include <WSplatLoader.h>
 
 // C++ includes
-#include <algorithm>
 #include <cmath>
 
 // Private includes
 #include "WSplatView_p.h"
+
+//-------------------------------------------------------------------------------------------------
+// Static variables
+
+// SPARK: examples/viewer, the camera starts at (0, 0, 1) looking down -Z.
+static const QVector3D CAMERA_START(0.0f, 0.0f, 1.0f);
 
 //-------------------------------------------------------------------------------------------------
 // Static functions
@@ -52,63 +57,6 @@ static QString urlToPath(const QUrl & url)
     if (url.scheme() == "qrc") return ':' + url.path();
 
     return url.toString();
-}
-
-// NOTE: A robust bounding sphere: the median of the centers, and the 90th percentile distance
-//       to it, on a sample of at most 100k splats. Outliers are common in 3DGS captures.
-static void computeBounds(const WPackedSplats & splats, QVector3D * center, float * radius)
-{
-    int count = splats.numSplats;
-
-    if (count == 0)
-    {
-        *center = QVector3D();
-        *radius = 1.0f;
-
-        return;
-    }
-
-    int step = qMax(1, count / 100000);
-
-    QVector<float> xs;
-    QVector<float> ys;
-    QVector<float> zs;
-
-    for (int i = 0; i < count; i += step)
-    {
-        const quint32 * packed = splats.packed.constData() + qint64(i) * 4;
-
-        xs.append(WPackedSplats::halfToFloat(packed[1] & 0xffff));
-        ys.append(WPackedSplats::halfToFloat(packed[1] >> 16));
-        zs.append(WPackedSplats::halfToFloat(packed[2] & 0xffff));
-    }
-
-    int middle = xs.count() / 2;
-
-    std::nth_element(xs.begin(), xs.begin() + middle, xs.end());
-    std::nth_element(ys.begin(), ys.begin() + middle, ys.end());
-    std::nth_element(zs.begin(), zs.begin() + middle, zs.end());
-
-    *center = QVector3D(xs.at(middle), ys.at(middle), zs.at(middle));
-
-    QVector<float> distances;
-
-    for (int i = 0; i < count; i += step)
-    {
-        const quint32 * packed = splats.packed.constData() + qint64(i) * 4;
-
-        QVector3D position(WPackedSplats::halfToFloat(packed[1] & 0xffff),
-                           WPackedSplats::halfToFloat(packed[1] >> 16),
-                           WPackedSplats::halfToFloat(packed[2] & 0xffff));
-
-        distances.append(position.distanceToPoint(*center));
-    }
-
-    int percentile = distances.count() * 9 / 10;
-
-    std::nth_element(distances.begin(), distances.begin() + percentile, distances.end());
-
-    *radius = qMax(distances.at(percentile), 0.001f);
 }
 
 // NOTE: Canceling the future aborts the decode within a batch, see WPackedSplats::canceled.
@@ -126,8 +74,6 @@ static void loadSplats(QPromise<WSplatLoadResult> & promise, const QString & fil
     result.loadMs = timer.nsecsElapsed() / 1000000.0;
 
     if (promise.isCanceled()) return;
-
-    if (result.splats) computeBounds(*result.splats, &result.center, &result.radius);
 
     promise.addResult(result);
 }
@@ -265,7 +211,6 @@ void WSplatViewPrivate::init()
 
     status = WSplatView::Null;
 
-    boundsRadius = 1.0f;
 
     loadMs = 0.0;
 
@@ -295,7 +240,7 @@ void WSplatViewPrivate::init()
 
     stats = QSharedPointer<WSplatViewStats>(new WSplatViewStats);
 
-    camera.position = QVector3D(0.0f, 0.0f, 3.0f);
+    camera.position = CAMERA_START;
 
     animationTimer.start();
 
@@ -388,13 +333,11 @@ void WSplatViewPrivate::onLoaded()
 
     splats = result.splats;
 
-    boundsCenter = result.center;
-    boundsRadius = result.radius;
-
     loadMs = result.loadMs;
 
     emit q->splatCountChanged();
 
+    // NOTE: Each file starts from the start pose, like opening it in Spark's viewer.
     q->resetCamera();
 
     setStatus(WSplatView::Ready);
@@ -498,12 +441,7 @@ WSplatView::~WSplatView()
 {
     Q_D(WSplatView);
 
-    QVector3D center = d->meshQuaternion().rotatedVector(d->boundsCenter);
-
-    // NOTE: Frames the bounding sphere for the vertical field of view, looking down -Z.
-    float distance = d->boundsRadius / std::tan(qDegreesToRadians(d->fov) / 2.0);
-
-    d->camera.position   = center + QVector3D(0.0f, 0.0f, distance);
+    d->camera.position   = CAMERA_START;
     d->camera.quaternion = QQuaternion();
 
     d->controls.clear();

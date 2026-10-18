@@ -34,6 +34,9 @@ Window
         // NOTE: Keeps the GPU at speed, so movements start without a hitch.
         continuous: true
 
+        // SPARK: examples/viewer, a 75 degree vertical field of view.
+        fov: 75
+
         focus: true
 
         Component.onCompleted: forceActiveFocus()
