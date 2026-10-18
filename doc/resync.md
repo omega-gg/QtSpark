@@ -79,6 +79,7 @@ You need a Spark checkout (`$SPARK_DIR`) with tags fetched.
 | `src/SparkRenderer.ts` | `src/WSplatRenderer.cpp` (`updateInternal`, `driveSort`, `readbackDepth`, uniforms), `WSplatRenderOptions` | defaults in `WSplatRenderer.h` |
 | `src/SplatGeometry.ts` | `quadVertices` / `quadIndices` in `WSplatRenderer.cpp` | |
 | `src/controls.ts` | `src/WSplatControls.cpp` | constants at the top |
+| three.js `examples/jsm/controls/OrbitControls.js` (0.180.0, Spark's `three` dependency) | `src/WSplatOrbitControls.cpp` | only when Spark bumps `three`; the editor's settings come from `examples/editor` |
 | `src/defines.ts` | `src/Splat.h` | |
 | `src/utils.ts` `getTextureSize` | `WPackedSplats::getTextureSize` | |
 | `rust/spark-lib/src/splat_encode.rs` | `src/WPackedSplats.cpp` | encoders |

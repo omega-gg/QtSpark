@@ -26,6 +26,7 @@ HEADERS += Splat.h \
            WSplatRenderer.h \
            WSplatRenderer_p.h \
            WSplatControls.h \
+           WSplatOrbitControls.h \
            WSplatView.h \
            WSplatView_p.h
 
@@ -40,6 +41,7 @@ SOURCES += WSplatMath.cpp \
            WSplatRendererCapture.cpp \
            WSplatReadbackD3D11.cpp \
            WSplatControls.cpp \
+           WSplatOrbitControls.cpp \
            WSplatView.cpp
 
 # NOTE: The DLL lands next to the executables so they run without a deploy step.

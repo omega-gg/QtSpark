@@ -47,6 +47,7 @@
 #include <WSplatView.h>
 #include <WSplatRenderer.h>
 #include <WSplatControls.h>
+#include <WSplatOrbitControls.h>
 
 // Forward declarations
 class QQuickWindow;
@@ -124,7 +125,10 @@ public: // Variables
 
     WSplatView::Orientation orientation;
 
+    WSplatView::ControlMode controlMode;
+
     WSplatControls       controls;
+    WSplatOrbitControls  orbitControls;
     WSplatControlsObject camera;
 
     qreal fov;

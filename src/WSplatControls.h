@@ -123,6 +123,10 @@ public: // Interface
 
     bool isActive() const;
 
+public: // Static functions
+    // NOTE: The wheel deltas of the event as browser WheelEvent pixels.
+    static QPointF wheelPixels(const QWheelEvent * event);
+
 public: // Variables
     bool enable;
 

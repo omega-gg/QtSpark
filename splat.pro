@@ -10,6 +10,7 @@ OTHER_FILES += README.md \
                implementation.md \
                LICENSE.md \
                LICENSE.spark \
+               LICENSE.three \
                build.sh \
                doc/plan.md \
                doc/resync.md \

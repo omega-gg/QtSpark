@@ -46,6 +46,7 @@ class SPLAT_EXPORT WSplatView : public QQuickRhiItem
 
     Q_ENUMS(Status)
     Q_ENUMS(Orientation)
+    Q_ENUMS(ControlMode)
 
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
 
@@ -78,6 +79,9 @@ class SPLAT_EXPORT WSplatView : public QQuickRhiItem
 
     Q_PROPERTY(bool  controlsEnabled READ controlsEnabled WRITE setControlsEnabled
                NOTIFY controlsEnabledChanged)
+
+    Q_PROPERTY(ControlMode controlMode READ controlMode WRITE setControlMode
+               NOTIFY controlModeChanged)
     Q_PROPERTY(qreal moveSpeed READ moveSpeed WRITE setMoveSpeed NOTIFY moveSpeedChanged)
 
     Q_PROPERTY(qreal maxStdDev  READ maxStdDev  WRITE setMaxStdDev  NOTIFY renderOptionsChanged)
@@ -100,6 +104,10 @@ public:
     // NOTE: The frame the file is authored in. Spark's examples rotate 3DGS captures (OpenCV,
     //       +Y down) by 180 degrees about X.
     enum Orientation { OpenCV, OpenGL, ZUp };
+
+    // NOTE: Fly is Spark's SparkControls. Orbit is the three.js OrbitControls of Spark's editor,
+    //       around the origin. Switching resets the camera.
+    enum ControlMode { Fly, Orbit };
 
 public:
     explicit WSplatView(QQuickItem * parent = NULL);
@@ -149,6 +157,8 @@ signals:
     void fovChanged();
 
     void controlsEnabledChanged();
+
+    void controlModeChanged();
     void moveSpeedChanged();
 
     void renderOptionsChanged();
@@ -194,6 +204,9 @@ public: // Properties
 
     bool controlsEnabled() const;
     void setControlsEnabled(bool enabled);
+
+    ControlMode controlMode() const;
+    void        setControlMode(ControlMode mode);
 
     qreal moveSpeed() const;
     void  setMoveSpeed(qreal speed);

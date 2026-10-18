@@ -45,6 +45,7 @@ Not ported, out of scope for now:
 | `src/WSplatRenderer.*` | the renderer core, independent of Qt Quick | `src/SparkRenderer.ts` |
 | `src/WSplatRendererCapture.cpp` | readback of the displayed accumulator, for `splattest` | |
 | `src/WSplatControls.*` | keyboard and mouse navigation | `src/controls.ts` |
+| `src/WSplatOrbitControls.*` | orbit navigation, as in Spark's editor | three.js `examples/jsm/controls/OrbitControls.js` |
 | `src/WSplatView.*` | the QML item, a `QQuickRhiItem` | |
 | `src/shaders/` | GLSL baked by qsb at build time | `src/shaders/*.glsl` |
 | `viewer/` | demo application | |
@@ -285,6 +286,17 @@ equation. The camera looks down -Z with +Y up, and Euler angles are YXZ as in th
 | Middle drag | slide in the horizontal plane |
 | Wheel | move along the view axis (one notch = 0.15) |
 
+`SplatView.controlMode` switches to `Orbit`: the three.js `OrbitControls` of Spark's editor, ported
+by `WSplatOrbitControls` (three.js 0.180.0, Spark's dependency) with the editor's settings. It
+orbits around the origin at a distance between 0.1 and 10, and replaces the fly controls: the keys
+do not move the camera. Switching modes resets the camera.
+
+| Input (orbit) | Action |
+|---|---|
+| Left drag | orbit around the target |
+| Right drag, Ctrl / Shift + left drag | pan the target in the view plane |
+| Middle drag, wheel | dolly (one notch = x0.95) |
+
 Qt keys follow the keyboard layout (on AZERTY, forward is Z), while browser key codes are physical
 keys.
 
@@ -325,7 +337,7 @@ SplatView {
 
 | Group | Members |
 |---|---|
-| Properties | `source`, `backgroundColor`, `orientation`, `cameraPosition`, `cameraRotation`, `fov`, `zNear`, `zFar`, `controlsEnabled`, `moveSpeed`, `maxStdDev`, `blurAmount`, `minAlpha`, `shDegree`, `fast`, `continuous` |
+| Properties | `source`, `backgroundColor`, `orientation`, `cameraPosition`, `cameraRotation`, `fov`, `zNear`, `zFar`, `controlsEnabled`, `controlMode`, `moveSpeed`, `maxStdDev`, `blurAmount`, `minAlpha`, `shDegree`, `fast`, `continuous` |
 | Read only | `status` (Null, Loading, Ready, Error), `error`, `splatCount`, `activeSplats`, `fps`, `sortTime`, `readbackTime`, `loadTime`, `backendName` |
 | Methods | `resetCamera()`, `lookAt(point)` |
 

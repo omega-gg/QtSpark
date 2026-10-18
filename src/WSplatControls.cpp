@@ -479,22 +479,9 @@ void WSplatPointerControls::mouseRelease(QMouseEvent * event)
 // SPARK: PointerControls.constructor (wheel listener)
 void WSplatPointerControls::wheel(QWheelEvent * event)
 {
-    // NOTE: The browser WheelEvent deltas are pixels, positive when scrolling down or right.
-    //       Chrome reports deltaY = 100 per notch. Qt reports 120 angle units per notch, positive
-    //       when the wheel turns away from the user (up) or to the left. So a notch maps to
-    //       -angleDelta * 100 / 120. When the device reports pixels (trackpads) we use
-    //       -pixelDelta as is. deltaZ has no Qt equivalent, and Chrome's Shift + wheel
-    //       horizontal scrolling is not reproduced.
-    QPoint pixels = event->pixelDelta();
+    QPointF pixels = wheelPixels(event);
 
-    if (pixels.isNull())
-    {
-        QPoint angle = event->angleDelta();
-
-        scroll += QVector3D(-angle.x() * WHEEL_ANGLE_TO_PIXEL,
-                            -angle.y() * WHEEL_ANGLE_TO_PIXEL, 0);
-    }
-    else scroll += QVector3D(-pixels.x(), -pixels.y(), 0);
+    scroll += QVector3D(pixels.x(), pixels.y(), 0);
 }
 
 // NOTE: Like a pointercancel, it also drops the pending scroll and the inertia.
@@ -631,6 +618,27 @@ bool WSplatPointerControls::isActive() const
             rotateVelocity.length() * 0.1f > MOVEMENT_THRESHOLD
             ||
             moveVelocity.length() * 0.1f > MOVEMENT_THRESHOLD);
+}
+
+//-------------------------------------------------------------------------------------------------
+// Static functions
+//-------------------------------------------------------------------------------------------------
+
+// NOTE: The browser WheelEvent deltas are pixels, positive when scrolling down or right. Chrome
+//       reports deltaY = 100 per notch. Qt reports 120 angle units per notch, positive when the
+//       wheel turns away from the user (up) or to the left. So a notch maps to
+//       -angleDelta * 100 / 120. When the device reports pixels (trackpads) we use -pixelDelta as
+//       is. deltaZ has no Qt equivalent, and Chrome's Shift + wheel horizontal scrolling is not
+//       reproduced.
+/* static */ QPointF WSplatPointerControls::wheelPixels(const QWheelEvent * event)
+{
+    QPoint pixels = event->pixelDelta();
+
+    if (pixels.isNull() == false) return QPointF(-pixels.x(), -pixels.y());
+
+    QPoint angle = event->angleDelta();
+
+    return QPointF(-angle.x() * WHEEL_ANGLE_TO_PIXEL, -angle.y() * WHEEL_ANGLE_TO_PIXEL);
 }
 
 //-------------------------------------------------------------------------------------------------

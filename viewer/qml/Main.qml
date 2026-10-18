@@ -95,10 +95,15 @@ Window
                   + "metric   " + view.metricTime.toFixed(2) + " ms\n"
                   + "sort     " + view.sortTime.toFixed(2) + " ms\n"
                   + "load     " + view.loadTime.toFixed(0) + " ms\n"
+                  + "camera   " + (orbit ? "orbit" : "fly") + "\n"
                   + "\n"
-                  + "O open  Esc cancel  R reset  1/2/3 orientation\n"
-                  + "WASD QE move, Shift x5, Ctrl /5\n"
-                  + "Left drag rotate, Right/Middle slide, Wheel"
+                  + "O open  Esc cancel  R reset  C fly/orbit  1/2/3 orientation\n"
+                  + (orbit ? "Left drag orbit, Right or Shift+Left pan\n"
+                           + "Middle drag or Wheel zoom"
+                           : "WASD QE move, Shift x5, Ctrl /5\n"
+                           + "Left drag rotate, Right/Middle slide, Wheel")
+
+            property bool orbit: (view.controlMode == SplatView.Orbit)
 
             function statusText()
             {
@@ -130,6 +135,15 @@ Window
         sequence: "R"
 
         onActivated: view.resetCamera()
+    }
+
+    // NOTE: Switching starts the camera over from the start pose.
+    Shortcut
+    {
+        sequence: "C"
+
+        onActivated: view.controlMode = (view.controlMode == SplatView.Fly) ? SplatView.Orbit
+                                                                           : SplatView.Fly
     }
 
     Shortcut { sequence: "1"; onActivated: view.orientation = SplatView.OpenCV }

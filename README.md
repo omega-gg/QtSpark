@@ -54,8 +54,9 @@ Under Git Bash, set `QT_FORCE_STDERR_LOGGING=1` to see the output of the Qt tool
 | Right / middle drag | slide |
 | Wheel | forward / back |
 
-The viewer also has O (open, or drop a file), Esc (cancel a load), R (reset camera) and
-1 / 2 / 3 (OpenCV / OpenGL / Z up orientation).
+The viewer also has O (open, or drop a file), Esc (cancel a load), R (reset camera), C (fly or
+orbit, like the orbit controls of Spark's editor) and 1 / 2 / 3 (OpenCV / OpenGL / Z up
+orientation).
 
 ## Documentation
 
@@ -68,4 +69,5 @@ The viewer also has O (open, or drop a file), Esc (cancel a load), R (reset came
 
 ## License
 
-Splat is LGPLv3 (see LICENSE.md). The ported Spark code keeps its MIT notice (see LICENSE.spark).
+Splat is LGPLv3 (see LICENSE.md). The ported Spark code keeps its MIT notice (see LICENSE.spark),
+and so does the ported three.js code (see LICENSE.three).

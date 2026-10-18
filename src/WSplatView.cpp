@@ -225,6 +225,8 @@ void WSplatViewPrivate::init()
 
     controlsEnabled = true;
 
+    controlMode = WSplatView::Fly;
+
     shDegree = 3;
 
     animationLast = 0;
@@ -374,13 +376,18 @@ void WSplatViewPrivate::onAnimate()
         deltaTime = qMax(1.0f, std::round(deltaTime / interval)) * interval;
     }
 
-    bool moved = controls.update(deltaTime, camera);
+    bool orbit = (controlMode == WSplatView::Orbit);
+
+    bool moved = (orbit) ? orbitControls.update(camera, fov, q->height())
+                         : controls.update(deltaTime, camera);
 
     if (moved) emit q->cameraChanged();
 
+    bool active = (orbit) ? orbitControls.isActive() : controls.isActive();
+
     // NOTE: This runs just before the sync of the current frame. The item update lands in this
     //       frame, only the window update schedules the next one.
-    if (controls.isActive() || moved)
+    if (active || moved)
     {
         q->update();
 
@@ -445,6 +452,10 @@ WSplatView::~WSplatView()
     d->camera.quaternion = QQuaternion();
 
     d->controls.clear();
+
+    d->orbitControls.clear();
+
+    d->orbitControls.target = QVector3D();
 
     emit cameraChanged();
 
@@ -533,6 +544,14 @@ WSplatView::~WSplatView()
         return;
     }
 
+    // SPARK: examples/editor, the keys only move the camera in fly mode.
+    if (d->controlMode == Orbit)
+    {
+        QQuickRhiItem::keyPressEvent(event);
+
+        return;
+    }
+
     d->controls.fpsMovement.keyPress(event);
 
     d->startAnimation();
@@ -543,6 +562,13 @@ WSplatView::~WSplatView()
     Q_D(WSplatView);
 
     if (d->controlsEnabled == false)
+    {
+        QQuickRhiItem::keyReleaseEvent(event);
+
+        return;
+    }
+
+    if (d->controlMode == Orbit)
     {
         QQuickRhiItem::keyReleaseEvent(event);
 
@@ -567,7 +593,11 @@ WSplatView::~WSplatView()
         return;
     }
 
-    d->controls.pointerControls.mousePress(event);
+    if (d->controlMode == Orbit)
+    {
+        d->orbitControls.mousePress(event);
+    }
+    else d->controls.pointerControls.mousePress(event);
 
     d->startAnimation();
 }
@@ -578,7 +608,11 @@ WSplatView::~WSplatView()
 
     if (d->controlsEnabled == false) return;
 
-    d->controls.pointerControls.mouseMove(event);
+    if (d->controlMode == Orbit)
+    {
+        d->orbitControls.mouseMove(event);
+    }
+    else d->controls.pointerControls.mouseMove(event);
 
     d->startAnimation();
 }
@@ -589,7 +623,11 @@ WSplatView::~WSplatView()
 
     if (d->controlsEnabled == false) return;
 
-    d->controls.pointerControls.mouseRelease(event);
+    if (d->controlMode == Orbit)
+    {
+        d->orbitControls.mouseRelease(event);
+    }
+    else d->controls.pointerControls.mouseRelease(event);
 
     d->startAnimation();
 }
@@ -605,7 +643,11 @@ WSplatView::~WSplatView()
         return;
     }
 
-    d->controls.pointerControls.wheel(event);
+    if (d->controlMode == Orbit)
+    {
+        d->orbitControls.wheel(event);
+    }
+    else d->controls.pointerControls.wheel(event);
 
     d->startAnimation();
 }
@@ -616,6 +658,8 @@ WSplatView::~WSplatView()
 
     // SPARK: FpsMovement releases every key on window blur.
     d->controls.clear();
+
+    d->orbitControls.clear();
 
     QQuickRhiItem::focusOutEvent(event);
 }
@@ -859,9 +903,33 @@ void WSplatView::setControlsEnabled(bool enabled)
 
     d->controlsEnabled = enabled;
 
-    if (enabled == false) d->controls.clear();
+    if (enabled == false)
+    {
+        d->controls.clear();
+
+        d->orbitControls.clear();
+    }
 
     emit controlsEnabledChanged();
+}
+
+WSplatView::ControlMode WSplatView::controlMode() const
+{
+    Q_D(const WSplatView); return d->controlMode;
+}
+
+void WSplatView::setControlMode(ControlMode mode)
+{
+    Q_D(WSplatView);
+
+    if (d->controlMode == mode) return;
+
+    d->controlMode = mode;
+
+    // NOTE: Each mode starts from the start pose, and orbits around the origin.
+    resetCamera();
+
+    emit controlModeChanged();
 }
 
 qreal WSplatView::moveSpeed() const
