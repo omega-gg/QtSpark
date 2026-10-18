@@ -211,6 +211,9 @@ int main(int argc, char * argv[])
 
         window->resize(parser.value(widthOption).toInt(), parser.value(heightOption).toInt());
 
+        // NOTE: The bench requests each frame itself, a continuous view would draw extra ones.
+        view->setContinuous(false);
+
         QJsonObject config = QJsonDocument::fromJson(file.readAll()).object();
 
         if (parser.isSet(framesOption))

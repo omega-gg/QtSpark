@@ -523,6 +523,8 @@ void WSplatRendererPrivate::releaseTargets()
 
     lastOrdering.clear();
 
+    readback32.clear();
+
     activeSplats = 0;
 
     display = pool.at(0);
@@ -873,9 +875,15 @@ void WSplatRendererPrivate::driveSort(QRhiCommandBuffer * cb)
     job->fastSort = options.fastSort;
     job->threads  = (options.fastSort) ? WSplatSort::idealThreads() : 1;
 
-    job->metric.data = QByteArray(qint64(job->maxSplats) * sizeof(quint32), 0);
+    // SPARK: Readback.ensureBuffer, the readback buffer of the last sort is reused.
+    qint64 metricSize = qint64(job->maxSplats) * sizeof(quint32);
 
-    job->ordering = QByteArray(qint64(maxSplats) * sizeof(quint32), 0);
+    if (readback32.size() < metricSize) readback32 = QByteArray(metricSize, 0);
+
+    job->metric.data = std::move(readback32);
+
+    // NOTE: Zeroed on the sort worker, like Spark's new Uint32Array, not on the render thread.
+    job->ordering = QByteArray(qint64(maxSplats) * sizeof(quint32), Qt::Uninitialized);
 
     job->activeSplats = 0;
 
@@ -933,6 +941,8 @@ void WSplatRendererPrivate::startSort(WSplatSortJob * job)
         QElapsedTimer timer;
 
         timer.start();
+
+        job->ordering.fill(0);
 
         quint32 * metric = reinterpret_cast<quint32 *> (job->metric.data.data());
 
@@ -998,7 +1008,10 @@ void WSplatRendererPrivate::pollSort(QRhiResourceUpdateBatch * batch)
     batch->uploadTexture(orderingTexture,
                          QRhiTextureUploadDescription(QRhiTextureUploadEntry(0, 0, description)));
 
-    lastOrdering = sortJob->ordering.left(qint64(activeSplats) * sizeof(quint32));
+    // NOTE: Shared, not copied: only a capture reads it.
+    lastOrdering = sortJob->ordering;
+
+    readback32 = std::move(sortJob->metric.data);
 
     if (current->mappingVersion == sortJob->mappingVersion
         &&

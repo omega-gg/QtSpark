@@ -89,6 +89,11 @@ class SPLAT_EXPORT WSplatView : public QQuickRhiItem
     //       culling). Off by default, which is the exact Spark code path. The image is the same.
     Q_PROPERTY(bool fast READ isFast WRITE setFast NOTIFY renderOptionsChanged)
 
+    // NOTE: Draws every frame, like Spark's animation loop, instead of only when something
+    //       changed. Off by default. On, the GPU stays at speed, so on laptops there is no hitch
+    //       when a movement starts, at the cost of power.
+    Q_PROPERTY(bool continuous READ isContinuous WRITE setContinuous NOTIFY continuousChanged)
+
 public:
     enum Status { Null, Loading, Ready, Error };
 
@@ -148,6 +153,8 @@ signals:
 
     void renderOptionsChanged();
 
+    void continuousChanged();
+
 public: // Properties
     QUrl source() const;
     void setSource(const QUrl & url);
@@ -205,6 +212,9 @@ public: // Properties
 
     bool isFast() const;
     void setFast(bool fast);
+
+    bool isContinuous() const;
+    void setContinuous(bool continuous);
 
 private:
     Q_DISABLE_COPY(WSplatView)

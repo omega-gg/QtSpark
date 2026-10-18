@@ -151,6 +151,8 @@ public: // Variables
 
     bool animating;
 
+    bool continuous;
+
     QSharedPointer<WSplatViewStats> stats;
 
     // NOTE: The copy the properties read, refreshed by the stats timer (GUI thread).

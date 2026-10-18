@@ -27,6 +27,7 @@
 
 // Qt includes
 #include <QQuickWindow>
+#include <QScreen>
 #include <QtConcurrent>
 #include <rhi/qrhi.h>
 
@@ -160,6 +161,8 @@ public: // Variables
     qint64 frames = 0;
 
     QSharedPointer<WSplatViewStats> stats;
+
+    bool continuous = false;
 };
 
 /* virtual */ void WSplatViewRenderer::initialize(QRhiCommandBuffer *)
@@ -208,6 +211,8 @@ public: // Variables
                                   color.blueF() * alpha, alpha);
 
     stats = d->stats;
+
+    continuous = d->continuous;
 }
 
 /* virtual */ void WSplatViewRenderer::render(QRhiCommandBuffer * cb)
@@ -242,10 +247,10 @@ public: // Variables
         stats->renderer.gpuMs = cb->lastCompletedGpuTime() * 1000.0;
     }
 
-    // NOTE: The readback and sort complete over the next frames, keep them coming. Not while the
-    //       camera moves: the next frame is already requested, and one more would render the same
-    //       pose twice.
-    if (moved == false && renderer.needsUpdate()) update();
+    // NOTE: The readback and sort complete over the next frames, keep them coming, and so does
+    //       continuous mode. Not while the camera moves: the next frame is already requested
+    //       along with its movement, and one more would render the same pose twice.
+    if (moved == false && (continuous || renderer.needsUpdate())) update();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -280,6 +285,8 @@ void WSplatViewPrivate::init()
     animationLast = 0;
 
     animating = false;
+
+    continuous = false;
 
     statsFrames = 0;
     statsTime   = 0;
@@ -407,12 +414,36 @@ void WSplatViewPrivate::onAnimate()
 
     animationLast = now;
 
+    // NOTE: With vsync the frames reach the screen on refresh boundaries, but they start a few ms
+    //       early or late (a sort result costs a frame more work). Moving by the measured time
+    //       would make the motion uneven, so it is rounded to whole refresh intervals, like the
+    //       requestAnimationFrame timestamps Spark moves with. A missed refresh still counts.
+    QScreen * screen = (window) ? window->screen() : NULL;
+
+    if (screen
+        &&
+        screen->refreshRate() >= 1.0
+        &&
+        window->format().swapInterval() != 0)
+    {
+        float interval = 1.0f / screen->refreshRate();
+
+        deltaTime = qMax(1.0f, std::round(deltaTime / interval)) * interval;
+    }
+
     bool moved = controls.update(deltaTime, camera);
 
     if (moved) emit q->cameraChanged();
 
-    if (controls.isActive() || moved) q->update();
-    else                              animating = false;
+    // NOTE: This runs just before the sync of the current frame. The item update lands in this
+    //       frame, only the window update schedules the next one.
+    if (controls.isActive() || moved)
+    {
+        q->update();
+
+        window->update();
+    }
+    else animating = false;
 }
 
 void WSplatViewPrivate::onStats()
@@ -1009,6 +1040,24 @@ void WSplatView::setFast(bool fast)
     d->options.fastSort      = fast;
 
     emit renderOptionsChanged();
+
+    update();
+}
+
+bool WSplatView::isContinuous() const
+{
+    Q_D(const WSplatView); return d->continuous;
+}
+
+void WSplatView::setContinuous(bool continuous)
+{
+    Q_D(WSplatView);
+
+    if (d->continuous == continuous) return;
+
+    d->continuous = continuous;
+
+    emit continuousChanged();
 
     update();
 }

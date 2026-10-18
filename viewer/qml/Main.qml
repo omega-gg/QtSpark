@@ -31,6 +31,9 @@ Window
 
         source: initialSource
 
+        // NOTE: Keeps the GPU at speed, so movements start without a hitch.
+        continuous: true
+
         focus: true
 
         Component.onCompleted: forceActiveFocus()

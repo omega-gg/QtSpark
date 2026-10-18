@@ -50,7 +50,7 @@ void WSplatRendererPrivate::startCapture(QRhiCommandBuffer * cb)
     int numSplats = accumulator->numSplats;
 
     capture->viewOrigin = accumulator->viewOrigin;
-    capture->ordering   = lastOrdering;
+    capture->ordering   = lastOrdering.left(qint64(activeSplats) * sizeof(quint32));
 
     capture->splats.data = QByteArray(qint64(numSplats) * 4 * sizeof(quint32), 0);
     capture->metric.data = QByteArray(qint64(numSplats)     * sizeof(quint32), 0);

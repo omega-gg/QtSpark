@@ -325,6 +325,9 @@ public: // Variables
 
     QByteArray lastOrdering;
 
+    // SPARK: readback32, reused from sort to sort.
+    QByteArray readback32;
+
     // Draw
     QRhiRenderPassDescriptor * drawRenderPass;
     QRhiGraphicsPipeline     * drawPipeline;

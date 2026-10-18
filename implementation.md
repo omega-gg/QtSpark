@@ -296,7 +296,18 @@ keys.
 - `ZUp` is Spark's editor Z up preset.
 
 `resetCamera()` frames a robust bounding sphere of the centers: the median, and the 90th percentile
-distance.
+distance. The harness viewer (`npm run viewer`) frames with the same rule.
+
+Timing, so that movement stays smooth:
+
+- **Steps:** with vsync, the movement time is rounded to whole refresh intervals. Frames reach the
+  screen on refreshes but start a few ms early or late, and the measured time would make the
+  motion uneven. A missed refresh still counts.
+- **Next frame:** `afterAnimating` runs just before the sync, so an item update lands in the
+  current frame. `QQuickWindow::update()` schedules the next one.
+- **`continuous`:** draws every frame, like Spark's animation loop. While idle the laptop GPU
+  drops its clock, and the first frames of a movement would take about 100 ms. The viewer turns
+  it on, the bench off.
 
 ## QML
 
@@ -312,7 +323,7 @@ SplatView {
 
 | Group | Members |
 |---|---|
-| Properties | `source`, `backgroundColor`, `orientation`, `cameraPosition`, `cameraRotation`, `fov`, `zNear`, `zFar`, `controlsEnabled`, `moveSpeed`, `maxStdDev`, `blurAmount`, `minAlpha`, `shDegree` |
+| Properties | `source`, `backgroundColor`, `orientation`, `cameraPosition`, `cameraRotation`, `fov`, `zNear`, `zFar`, `controlsEnabled`, `moveSpeed`, `maxStdDev`, `blurAmount`, `minAlpha`, `shDegree`, `fast`, `continuous` |
 | Read only | `status` (Null, Loading, Ready, Error), `error`, `splatCount`, `activeSplats`, `fps`, `sortTime`, `readbackTime`, `loadTime`, `backendName` |
 | Methods | `resetCamera()`, `lookAt(point)` |
 
