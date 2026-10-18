@@ -145,15 +145,39 @@ Quick preset at 2560x1440, the median of 2 rounds after the warm-up (the rounds 
 - **Speed:** D3D11 is at parity or ahead. On the 2M splat scene, D3D12 and Vulkan are 8 to 12%
   behind, GPU bound (50 ms of GPU time against 43.5 ms on D3D11).
 
+### Earlier tables and bench pacing
+
+- **Duplicate frames:** before the stutter fix, every other Vulkan and D3D12 frame repeated the
+  previous pose without accumulating. Those cheap frames lowered the averages, so the earlier
+  Vulkan and D3D12 figures look faster than the views they showed.
+- **Pacing:** the bench requests each frame from the GUI thread. Qt delivers these requests on
+  the display vblank for D3D windows, and after a short timer otherwise, which capped light
+  scenes at 60 Hz once the duplicates were gone. In bench mode the viewer turns both off
+  (`QT_D3D_NO_VBLANK_THREAD`, `QT_QPA_UPDATE_IDLE_TIME`), like Spark's unthrottled harness.
+  Butterfly at 1440p: 2.4 ms on D3D11 and D3D12, against 9.5 ms for Spark. Vulkan stays at
+  8.3 ms, the 120 Hz cap of presenting through the integrated GPU.
+
 ## Reading
 
-- Splat is ahead wherever the browser or the CPU side costs something: light and medium scenes,
-  sort latency and frequency, and loading.
-- **When the GPU is the limit, Splat and Spark are at parity, within 5% either way.** Both run the
-  same shaders, the port being faithful. Splat is slightly behind on D3D11 and slightly ahead on
-  Vulkan.
-- Since this run, empty quad culling (`tightBounds`) was added. It is bit exact, and it gains a
-  few percent on large scenes.
+- **Light scenes:** Splat is far ahead (butterfly: 2.4 against 9.5 ms on D3D), as is loading.
+- **GPU bound scenes:** at parity on furry and synthetic on every backend, and on large with
+  D3D11. Both run the same shaders, the port being faithful.
+- **Smoothness:** the frame interval p95 is lower than Spark's on every backend.
+- **Sorting:** with the faithful options Splat sorts about half as often as Spark while moving
+  (see Known gaps). With `--fast` it sorts about twice as often.
+
+## Known gaps
+
+- **Sort rate:** each step of the sort cycle waits for the next Qt frame (see `implementation.md`,
+  Deviations). A fence polled from the sort worker was tried on D3D11 and gained nothing: the GPU
+  reaches the copy 2 to 3 frames after it is recorded. Waiting for the sort within a frame would
+  trade frame time, so it was not kept.
+- **D3D12 and Vulkan on large:** 15 to 20% more GPU time than D3D11 offscreen, with the same
+  shaders (D3D12 even runs the same DXBC). Ruled out: the fragment shader (a trivial one keeps the
+  gap), the readback, the vertex work (tiny splats are slightly faster there) and sub-pixel quads
+  (`tightBounds` keeps the gap). What remains is rasterizing and blending millions of overlapping
+  splats, a difference between the NVIDIA driver paths. On large, D3D11 is the backend to use on
+  this hardware.
 
 ## Next levers for GPU bound scenes
 
@@ -168,6 +192,3 @@ triangle setup for millions of sub-pixel quads, and 3 to 4 ms of fill at 1080p.
     and 6.1 to 8.8 against 5.6 to 6.0 ms at 480x270, in ABBA runs on D3D11. Writing and reading
     52 bytes per splat costs more than the vertex shading it saves. It also split
     `splatVertex.glsl` away from the upstream structure, so it was not kept.
-- **Rendering without the intermediate texture:** draw directly into the window
-  (`QQuickWindow::beforeRenderPassRecording`) instead of through `QQuickRhiItem`'s texture. That
-  saves a full screen copy and a depth buffer per frame.

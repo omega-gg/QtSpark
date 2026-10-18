@@ -100,6 +100,13 @@ int main(int argc, char * argv[])
         qputenv("QSG_RHI_PROFILE", "1");
 
         qputenv("QT_ENABLE_HIGHDPI_SCALING", "0");
+
+        // NOTE: The bench requests each frame from the GUI thread. Qt delivers these requests
+        //       on the display vblank for D3D windows, and after a 5 ms timer otherwise, which
+        //       would cap light scenes. Spark's harness runs unthrottled too.
+        qputenv("QT_D3D_NO_VBLANK_THREAD", "1");
+
+        qputenv("QT_QPA_UPDATE_IDLE_TIME", "0");
     }
 
     QSurfaceFormat::setDefaultFormat(format);

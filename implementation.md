@@ -325,6 +325,11 @@ Each deviation is deliberate and small:
 - **Accumulator rotation:** a frame based state machine instead of `async` / `await`. The
   readbacks complete through QRhi callbacks, the sort through a `QFuture`. The decisions (when to
   generate, when to swap `display`) follow upstream line by line.
+- **Sort cycle:** Spark starts the next readback as soon as a sort lands, between frames, and
+  polls its readback fence every few milliseconds. Qt records GPU work only inside a frame, so
+  each step waits for the next one: a cycle takes about 3 frames, against about 1.5 for Spark.
+  While the camera moves, the order trails it a little more; once it stops, both converge to the
+  same image. `SplatView.fast` sorts more often than Spark.
 - **Depth test:** off, since the splats are the only content of their render target.
 - **Mesh:** a single mesh per view. Spark's multi mesh mapping reduces to one generator at base 0.
 - **Shaders:** `readPackedArray` takes `inout Gsplat` (`out` upstream), and `readPackedSplat`
