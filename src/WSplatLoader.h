@@ -33,6 +33,9 @@
 #include <QSharedPointer>
 #include <QString>
 
+// C++ includes
+#include <functional>
+
 // Splat includes
 #include <Splat.h>
 
@@ -63,9 +66,12 @@ public: // Static functions
 
     static bool loadFile(const QString & fileName, WSplatReceiver & receiver, QString * error);
 
-    // NOTE: Convenience: loads a file into a new WPackedSplats. Returns null on failure.
+    // NOTE: Convenience: loads a file into a new WPackedSplats. Returns null on failure, or when
+    //       'canceled' returns true during the load (error "Canceled").
     static QSharedPointer<WPackedSplats> loadPackedSplats(const QString & fileName,
-                                                          QString       * error);
+                                                          QString       * error,
+                                                          const std::function<bool()> & canceled
+                                                          = std::function<bool()>());
 };
 
 #endif // WSPLATLOADER_H

@@ -33,6 +33,9 @@
 // Qt includes
 #include <QVector>
 
+// C++ includes
+#include <functional>
+
 // Splat includes
 #include <WSplatReceiver.h>
 
@@ -116,7 +119,14 @@ public: // WSplatReceiver implementation
     /* virtual */ void setSh2(int base, int count, const float * sh2);
     /* virtual */ void setSh3(int base, int count, const float * sh3);
 
+private: // Functions
+    void checkCanceled() const;
+
 public: // Variables
+    // NOTE: Polled while loading, once per batch. When it returns true the receiver functions
+    //       throw WSplatCanceled.
+    std::function<bool()> canceled;
+
     int numSplats;
     int maxSplats;
 

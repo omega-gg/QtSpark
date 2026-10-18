@@ -102,6 +102,8 @@ You need a Spark checkout (`$SPARK_DIR`) with tags fetched.
   bumps `libm` and the byte exact tests fail, diff the crate between the two versions.
 - **Encoders and decoders** must stay byte exact: `splattest` compares `packed.bin` and `sh*.bin`
   word by word against Spark.
+- **Receiver functions:** every `WPackedSplats` receiver function starts with `checkCanceled()`.
+  A setter ported from `packed_splats.rs` or `decoder.rs` needs it too, or loads abort later.
 - **New upstream features** (LoD, formats) are out of scope until decided. List them below so they
   are not lost.
 

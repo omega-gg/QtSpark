@@ -577,11 +577,22 @@ int WPackedSplats::numSh() const
 }
 
 //-------------------------------------------------------------------------------------------------
+// Private functions
+//-------------------------------------------------------------------------------------------------
+
+void WPackedSplats::checkCanceled() const
+{
+    if (canceled && canceled()) throw WSplatCanceled();
+}
+
+//-------------------------------------------------------------------------------------------------
 // WSplatReceiver implementation
 //-------------------------------------------------------------------------------------------------
 
 /* virtual */ void WPackedSplats::finish()
 {
+    checkCanceled();
+
     centers.resize(qsizetype(numSplats) * 3);
 
     const quint32 * data = packed.constData();
@@ -602,6 +613,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::init_splats
 /* virtual */ bool WPackedSplats::initSplats(const WSplatInit & init)
 {
+    checkCanceled();
+
     if (init.numSplats < 0
         ||
         init.numSplats > INT_MAX - PACKEDSPLATS_LAYER_SIZE)
@@ -675,6 +688,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_batch
 /* virtual */ void WPackedSplats::setBatch(int base, int count, const WSplatProps & batch)
 {
+    checkCanceled();
+
     if (batch.center
         &&
         batch.opacity
@@ -716,6 +731,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_center
 /* virtual */ void WPackedSplats::setCenter(int base, int count, const float * center)
 {
+    checkCanceled();
+
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
 
     quint32 * buffer = packed.data() + (qsizetype) base * 4;
@@ -729,6 +746,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_opacity
 /* virtual */ void WPackedSplats::setOpacity(int base, int count, const float * opacity)
 {
+    checkCanceled();
+
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
 
     quint32 * buffer = packed.data() + (qsizetype) base * 4;
@@ -742,6 +761,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_rgb
 /* virtual */ void WPackedSplats::setRgb(int base, int count, const float * rgb)
 {
+    checkCanceled();
+
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
 
     quint32 * buffer = packed.data() + (qsizetype) base * 4;
@@ -755,6 +776,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_rgba
 /* virtual */ void WPackedSplats::setRgba(int base, int count, const float * rgba)
 {
+    checkCanceled();
+
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
 
     quint32 * buffer = packed.data() + (qsizetype) base * 4;
@@ -768,6 +791,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_scale
 /* virtual */ void WPackedSplats::setScale(int base, int count, const float * scale)
 {
+    checkCanceled();
+
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
 
     quint32 * buffer = packed.data() + (qsizetype) base * 4;
@@ -781,6 +806,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_quat
 /* virtual */ void WPackedSplats::setQuat(int base, int count, const float * quat)
 {
+    checkCanceled();
+
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
 
     quint32 * buffer = packed.data() + (qsizetype) base * 4;
@@ -796,6 +823,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_sh1
 /* virtual */ void WPackedSplats::setSh1(int base, int count, const float * sh1)
 {
+    checkCanceled();
+
     if (this->sh1.isEmpty()) return;
 
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
@@ -806,6 +835,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_sh2
 /* virtual */ void WPackedSplats::setSh2(int base, int count, const float * sh2)
 {
+    checkCanceled();
+
     if (this->sh2.isEmpty()) return;
 
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);
@@ -816,6 +847,8 @@ int WPackedSplats::numSh() const
 // SPARK: PackedSplatsData::set_sh3
 /* virtual */ void WPackedSplats::setSh3(int base, int count, const float * sh3)
 {
+    checkCanceled();
+
     if (this->sh3.isEmpty()) return;
 
     Q_ASSERT(base >= 0 && count >= 0 && base + count <= maxSplats);

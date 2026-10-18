@@ -95,6 +95,14 @@ does:
 
 `WSplatView` runs the load on a worker thread with `QtConcurrent`.
 
+- **Switching scenes:** a new `source` frees the current splats before loading, so two scenes
+  never live together. Without a mesh, the renderer also frees the accumulators and the ordering
+  (`releaseTargets`), which only grow while a scene is shown, like in Spark.
+- **Aborting:** a new or empty `source` cancels the load in progress. `WPackedSplats::canceled`
+  is polled once per batch, and throws `WSplatCanceled` from the receiver, so the ported decoders
+  stay unchanged: `WSplatLoader::decode` catches it, and the decoders unwind through their RAII
+  buffers. A load stops within about 25 ms.
+
 ### 2. Encoding
 
 Each splat is 4 x uint32, the PackedSplats layout:

@@ -113,13 +113,22 @@ static void setError(QString * error, const QString & message)
 /* static */ bool WSplatLoader::decode(const uchar * data, qint64 size, FileType type,
                                        WSplatReceiver & receiver, QString * error)
 {
-    if (type == Ply)
+    try
     {
-        return WSplatPly::decode(data, size, receiver, error);
+        if (type == Ply)
+        {
+            return WSplatPly::decode(data, size, receiver, error);
+        }
+        else if (type == Spz)
+        {
+            return WSplatSpz::decode(data, size, receiver, error);
+        }
     }
-    else if (type == Spz)
+    catch (const WSplatCanceled &)
     {
-        return WSplatSpz::decode(data, size, receiver, error);
+        setError(error, "Canceled");
+
+        return false;
     }
 
     setError(error, "Unknown file type");
@@ -163,12 +172,20 @@ static void setError(QString * error, const QString & message)
     return decode(data, size, type, receiver, error);
 }
 
-/* static */ QSharedPointer<WPackedSplats> WSplatLoader::loadPackedSplats(const QString & fileName,
-                                                                         QString       * error)
+/* static */ QSharedPointer<WPackedSplats>
+WSplatLoader::loadPackedSplats(const QString & fileName, QString * error,
+                               const std::function<bool()> & canceled)
 {
     QSharedPointer<WPackedSplats> splats(new WPackedSplats);
 
-    if (loadFile(fileName, *splats, error) == false) return QSharedPointer<WPackedSplats>();
+    splats->canceled = canceled;
+
+    bool ok = loadFile(fileName, *splats, error);
+
+    // NOTE: The callback may reference the caller's state, the splats outlive the load.
+    splats->canceled = std::function<bool()>();
+
+    if (ok == false) return QSharedPointer<WPackedSplats>();
 
     return splats;
 }

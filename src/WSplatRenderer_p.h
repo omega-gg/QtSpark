@@ -213,6 +213,8 @@ public: // Functions
 
     void releaseResources();
 
+    void releaseTargets();
+
     void uploadSplats(QRhiResourceUpdateBatch * batch);
 
     void createAccumulateBindings();

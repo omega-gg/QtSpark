@@ -458,15 +458,7 @@ void WSplatRendererPrivate::releaseResources()
 {
     if (rhi == NULL) return;
 
-    waitPending();
-
-    for (WSplatAccumulator * accumulator : pool)
-    {
-        accumulator->dispose();
-
-        accumulator->version        = -1;
-        accumulator->mappingVersion = -1;
-    }
+    releaseTargets();
 
     delete accumulatePass.pipeline;
     delete accumulatePass.renderPass;
@@ -485,10 +477,6 @@ void WSplatRendererPrivate::releaseResources()
     release(emptyRGBA);
 
     release(sampler);
-
-    release(orderingTexture);
-
-    orderingRows = 0;
 
     release(drawPipeline);
     release(drawLayout);
@@ -509,6 +497,32 @@ void WSplatRendererPrivate::releaseResources()
     // NOTE: The splats are uploaded again on the next initialize.
     if (splats) splatsDirty = true;
 
+    supported = false;
+
+    rhi = NULL;
+}
+
+// NOTE: The accumulators and the ordering only grow while a mesh is shown, like in Spark. Without
+//       a mesh nothing needs them, so they are freed with the pending sort.
+void WSplatRendererPrivate::releaseTargets()
+{
+    waitPending();
+
+    for (WSplatAccumulator * accumulator : pool)
+    {
+        accumulator->dispose();
+
+        accumulator->version        = -1;
+        accumulator->mappingVersion = -1;
+    }
+
+    release(orderingTexture);
+
+    orderingRows = 0;
+    maxSplats    = 0;
+
+    lastOrdering.clear();
+
     activeSplats = 0;
 
     display = pool.at(0);
@@ -517,10 +531,6 @@ void WSplatRendererPrivate::releaseResources()
     accumulators = { pool.at(1), pool.at(2) };
 
     sortDirty = false;
-
-    supported = false;
-
-    rhi = NULL;
 }
 
 // SPARK: PackedSplats.getTexture / ensureShTextures
@@ -533,7 +543,12 @@ void WSplatRendererPrivate::uploadSplats(QRhiResourceUpdateBatch * batch)
 
     splatsDirty = false;
 
-    if (splats.isNull() || splats->numSplats == 0) return;
+    if (splats.isNull() || splats->numSplats == 0)
+    {
+        releaseTargets();
+
+        return;
+    }
 
     const WSplatTextureSize & size = splats->textureSize;
 

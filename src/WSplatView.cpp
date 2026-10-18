@@ -110,7 +110,8 @@ static void computeBounds(const WPackedSplats & splats, QVector3D * center, floa
     *radius = qMax(distances.at(percentile), 0.001f);
 }
 
-static WSplatLoadResult loadSplats(const QString & fileName)
+// NOTE: Canceling the future aborts the decode within a batch, see WPackedSplats::canceled.
+static void loadSplats(QPromise<WSplatLoadResult> & promise, const QString & fileName)
 {
     WSplatLoadResult result;
 
@@ -118,13 +119,16 @@ static WSplatLoadResult loadSplats(const QString & fileName)
 
     timer.start();
 
-    result.splats = WSplatLoader::loadPackedSplats(fileName, &result.error);
+    result.splats = WSplatLoader::loadPackedSplats(fileName, &result.error,
+                                                   [&promise]() { return promise.isCanceled(); });
 
     result.loadMs = timer.nsecsElapsed() / 1000000.0;
 
+    if (promise.isCanceled()) return;
+
     if (result.splats) computeBounds(*result.splats, &result.center, &result.radius);
 
-    return result;
+    promise.addResult(result);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -363,6 +367,9 @@ void WSplatViewPrivate::onLoaded()
 {
     Q_Q(WSplatView);
 
+    // NOTE: The source was cleared while loading: the load was canceled, it has no result.
+    if (status != WSplatView::Loading || watcher.future().resultCount() == 0) return;
+
     WSplatLoadResult result = watcher.result();
 
     if (result.splats.isNull())
@@ -444,7 +451,13 @@ WSplatView::WSplatView(QQuickItem * parent)
     Q_D(WSplatView); d->init();
 }
 
-WSplatView::~WSplatView() {}
+WSplatView::~WSplatView()
+{
+    Q_D(WSplatView);
+
+    // NOTE: The load runs on its own data, canceling it frees the worker sooner.
+    d->watcher.future().cancel();
+}
 
 //-------------------------------------------------------------------------------------------------
 // Interface
@@ -655,17 +668,14 @@ void WSplatView::setSource(const QUrl & url)
 
     d->source = url;
 
-    if (url.isEmpty())
-    {
-        d->splats.clear();
+    // NOTE: A load in progress is aborted. The current splats are freed before loading, so two
+    //       scenes never live together, and the renderer frees their textures and targets on the
+    //       next frame.
+    d->watcher.future().cancel();
 
-        d->setStatus(Null);
+    d->splats.clear();
 
-        emit splatCountChanged();
-
-        update();
-    }
-    else
+    if (url.isEmpty() == false)
     {
         d->setStatus(Loading);
 
@@ -673,6 +683,11 @@ void WSplatView::setSource(const QUrl & url)
 
         d->watcher.setFuture(QtConcurrent::run(loadSplats, fileName));
     }
+    else d->setStatus(Null);
+
+    emit splatCountChanged();
+
+    update();
 
     emit sourceChanged();
 }

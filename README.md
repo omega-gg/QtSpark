@@ -52,7 +52,8 @@ Under Git Bash, set `QT_FORCE_STDERR_LOGGING=1` to see the output of the Qt tool
 | Right / middle drag | slide |
 | Wheel | forward / back |
 
-The viewer also has O (open), R (reset camera) and 1 / 2 / 3 (OpenCV / OpenGL / Z up orientation).
+The viewer also has O (open, or drop a file), Esc (cancel a load), R (reset camera) and
+1 / 2 / 3 (OpenCV / OpenGL / Z up orientation).
 
 ## Documentation
 

@@ -16,6 +16,13 @@ Window
 
     color: "black"
 
+    // NOTE: Clears the source first, so opening the same file loads it again.
+    function open(url)
+    {
+        view.source = ""
+        view.source = url
+    }
+
     SplatView
     {
         id: view
@@ -35,7 +42,7 @@ Window
 
         onDropped: (drop) =>
         {
-            if (drop.hasUrls) view.source = drop.urls[0]
+            if (drop.hasUrls) open(drop.urls[0])
         }
     }
 
@@ -45,7 +52,7 @@ Window
 
         nameFilters: [ "Splats (*.ply *.spz)", "All files (*)" ]
 
-        onAccepted: view.source = selectedFile
+        onAccepted: open(selectedFile)
     }
 
     Rectangle
@@ -83,7 +90,7 @@ Window
                   + "sort     " + view.sortTime.toFixed(2) + " ms\n"
                   + "load     " + view.loadTime.toFixed(0) + " ms\n"
                   + "\n"
-                  + "O open  R reset  1/2/3 orientation\n"
+                  + "O open  Esc cancel  R reset  1/2/3 orientation\n"
                   + "WASD QE move, Shift x5, Ctrl /5\n"
                   + "Left drag rotate, Right/Middle slide, Wheel"
 
@@ -102,6 +109,14 @@ Window
         sequence: "O"
 
         onActivated: dialog.open()
+    }
+
+    // NOTE: Clearing the source aborts the load.
+    Shortcut
+    {
+        sequence: "Escape"
+
+        onActivated: if (view.status == SplatView.Loading) view.source = ""
     }
 
     Shortcut
