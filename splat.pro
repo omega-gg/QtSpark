@@ -11,7 +11,11 @@ OTHER_FILES += README.md \
                LICENSE.md \
                LICENSE.spark \
                LICENSE.three \
+               .azure-pipelines.yml \
+               3rdparty.sh \
                build.sh \
+               deploy.sh \
+               dist/start.sh \
                doc/plan.md \
                doc/resync.md \
                doc/benchmark.md \

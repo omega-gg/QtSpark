@@ -1,0 +1,77 @@
+#--------------------------------------------------------------------------------------------------
+# Windows
+#--------------------------------------------------------------------------------------------------
+
+jobs:
+- job: win64_mingw
+  pool:
+    vmImage: "windows-latest"
+  steps:
+  - bash: |
+      sh 3rdparty.sh win64 mingw
+      export EXTERNAL="$PWD/../3rdparty/win64"
+      sh build.sh release mingw
+      sh deploy.sh mingw
+      cd deploy
+      7z a ../QtSpark.zip *
+  - publish: $(System.DefaultWorkingDirectory)/QtSpark.zip
+    artifact: QtSpark-win64-mingw
+
+# NOTE: The MSVC kit has the Direct3D 12 backend.
+- job: win64_msvc
+  pool:
+    vmImage: "windows-latest"
+  steps:
+  - bash: |
+      sh 3rdparty.sh win64 msvc
+      export EXTERNAL="$PWD/../3rdparty/win64"
+      sh build.sh release msvc
+      sh deploy.sh msvc
+      cd deploy
+      7z a ../QtSpark.zip *
+  - publish: $(System.DefaultWorkingDirectory)/QtSpark.zip
+    artifact: QtSpark-win64-msvc
+
+#--------------------------------------------------------------------------------------------------
+# macOS
+#--------------------------------------------------------------------------------------------------
+
+- job: macOS
+  pool:
+    vmImage: "macOS-14"
+  steps:
+  - bash: |
+      sh 3rdparty.sh macOS
+      export EXTERNAL="$PWD/../3rdparty/macOS"
+      sh build.sh
+      sh deploy.sh
+      cd deploy
+      zip -rqy ../QtSpark.zip *
+  - publish: $(System.DefaultWorkingDirectory)/QtSpark.zip
+    artifact: QtSpark-macOS
+
+#--------------------------------------------------------------------------------------------------
+# Linux
+#--------------------------------------------------------------------------------------------------
+# NOTE: Qt 6 requires the glibc of Ubuntu 22.04. The older the glibc, the more distributions run
+#       the build.
+
+- job: linux64
+  pool:
+    vmImage: "ubuntu-latest"
+  steps:
+  - bash: |
+      docker run -d --name ubuntu -v $PWD:/QtSpark amd64/ubuntu:22.04 tail -f /dev/null
+      docker exec -t ubuntu bash -c "set -e;
+                                     cd /QtSpark;
+                                     export DEBIAN_FRONTEND=noninteractive;
+                                     apt-get update;
+                                     apt-get -y install sudo curl zip unzip git zlib1g-dev;
+                                     sh 3rdparty.sh linux;
+                                     export EXTERNAL=/3rdparty/linux;
+                                     sh build.sh;
+                                     sh deploy.sh;
+                                     cd deploy;
+                                     zip -rqy ../QtSpark.zip *"
+  - publish: $(System.DefaultWorkingDirectory)/QtSpark.zip
+    artifact: QtSpark-linux64

@@ -5,15 +5,11 @@ set -e
 # Settings
 #--------------------------------------------------------------------------------------------------
 
-# NOTE: Override these with environment variables when your kits live elsewhere.
-QT_MINGW="${QT_MINGW:-/c/Qt/6.10.1/mingw_64}"
-QT_MSVC="${QT_MSVC:-/c/Qt/6.10.1/msvc2022_64}"
+Qt_version="6.10.1"
 
-MINGW_DIR="${MINGW_DIR:-/c/Qt/Tools/mingw1310_64}"
+MinGW_version="13.1.0"
 
-VCVARS="${VCVARS:-C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/vcvars64.bat}"
-
-JOM="${JOM:-/c/Qt/Tools/QtCreator/bin/jom/jom.exe}"
+jom_version="1.1.4"
 
 make_arguments="${MAKE_ARGUMENTS:--j 8}"
 
@@ -38,25 +34,87 @@ case "$config" in release|debug|clean) ;; *) usage ;; esac
 case "$kit"    in mingw|msvc)          ;; *) usage ;; esac
 
 #--------------------------------------------------------------------------------------------------
-# Build
+# Configuration
 #--------------------------------------------------------------------------------------------------
 
 cd "$(dirname "$0")"
 
 root="$PWD"
 
+case `uname` in
+MINGW*|MSYS*|CYGWIN*) host="win64";;
+Darwin*)              host="macOS";;
+*)                    host="linux";;
+esac
+
+# NOTE: EXTERNAL points at the kits of 3rdparty.sh (../3rdparty/<platform>), the local installs
+#       are used otherwise. Override each kit with an environment variable when it lives elsewhere.
+if [ -n "$EXTERNAL" ]; then
+
+    Qt="$EXTERNAL/Qt/$Qt_version"
+
+    QT_MINGW="${QT_MINGW:-$Qt}"
+    QT_MSVC="${QT_MSVC:-$Qt}"
+    QT_DIR="${QT_DIR:-$Qt}"
+
+    MINGW_DIR="${MINGW_DIR:-$EXTERNAL/MinGW/$MinGW_version}"
+
+    JOM="${JOM:-$EXTERNAL/jom/$jom_version/jom.exe}"
+fi
+
+QT_MINGW="${QT_MINGW:-/c/Qt/$Qt_version/mingw_64}"
+QT_MSVC="${QT_MSVC:-/c/Qt/$Qt_version/msvc2022_64}"
+
+if [ $host = "macOS" ]; then
+
+    QT_DIR="${QT_DIR:-$HOME/Qt/$Qt_version/macos}"
+else
+    QT_DIR="${QT_DIR:-$HOME/Qt/$Qt_version/gcc_64}"
+fi
+
+MINGW_DIR="${MINGW_DIR:-/c/Qt/Tools/mingw1310_64}"
+
+VCVARS="${VCVARS:-C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Auxiliary/Build/vcvars64.bat}"
+
+JOM="${JOM:-/c/Qt/Tools/QtCreator/bin/jom/jom.exe}"
+
+if [ $host != "win64" ]; then
+
+    kit="default"
+fi
+
+#--------------------------------------------------------------------------------------------------
+# Clean
+#--------------------------------------------------------------------------------------------------
+
 if [ "$config" = "clean" ]; then
 
     if [ "$kit" = "msvc" ]; then
         rm -rf build/qmake-msvc bin/msvc lib/msvc
     else
-        rm -rf build/qmake bin/*.exe bin/*.dll lib/*.a lib/*.dll
+        rm -rf build/qmake bin/splat* bin/Splat* lib/libSplat* lib/Splat*
     fi
 
     exit 0
 fi
 
-if [ "$kit" = "mingw" ]; then
+#--------------------------------------------------------------------------------------------------
+# Build
+#--------------------------------------------------------------------------------------------------
+
+if [ "$kit" = "default" ]; then
+
+    export PATH="$QT_DIR/bin:$PATH"
+
+    mkdir -p build/qmake
+
+    cd build/qmake
+
+    qmake -r ../../splat.pro "CONFIG+=$config"
+
+    make $make_arguments
+
+elif [ "$kit" = "mingw" ]; then
 
     export PATH="$QT_MINGW/bin:$MINGW_DIR/bin:$PATH"
 
@@ -64,7 +122,7 @@ if [ "$kit" = "mingw" ]; then
 
     cd build/qmake
 
-    qmake ../../splat.pro -spec win32-g++ "CONFIG+=$config"
+    qmake -r ../../splat.pro -spec win32-g++ "CONFIG+=$config"
 
     mingw32-make $make_arguments
 else
@@ -75,7 +133,7 @@ else
 @echo off
 call "$VCVARS" > nul || exit /b 1
 cd /d "$(cygpath -w "$root/build/qmake-msvc")" || exit /b 1
-"$(cygpath -w "$QT_MSVC/bin/qmake.exe")" "$(cygpath -w "$root/splat.pro")" -spec win32-msvc "CONFIG+=$config" || exit /b 1
+"$(cygpath -w "$QT_MSVC/bin/qmake.exe")" -r "$(cygpath -w "$root/splat.pro")" -spec win32-msvc "CONFIG+=$config" || exit /b 1
 "$(cygpath -w "$JOM")" || exit /b 1
 EOF
 

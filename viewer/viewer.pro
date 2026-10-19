@@ -8,8 +8,6 @@ TEMPLATE = app
 
 QT += quick
 
-win32:CONFIG += console
-
 LIBS += -L$$SPLAT_LIB -lSplat$$SPLAT_SUFFIX
 
 # NOTE: The bench helpers shared with splattest.

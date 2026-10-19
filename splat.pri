@@ -27,4 +27,11 @@ msvc {
     SPLAT_LIB = $$SPLAT/lib
 }
 
-unix:QMAKE_LFLAGS += "-Wl,-rpath,'\$$ORIGIN'"
+# NOTE: The executables find the library next to them once deployed, in lib/ when built.
+macx {
+    QMAKE_SONAME_PREFIX = @rpath
+
+    QMAKE_RPATHDIR += $$SPLAT_LIB
+} else:unix {
+    QMAKE_LFLAGS += "-Wl,-rpath,'\$$ORIGIN:\$$ORIGIN/../lib'"
+}

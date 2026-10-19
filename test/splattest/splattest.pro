@@ -10,6 +10,8 @@ QT += gui gui-private
 
 CONFIG += console
 
+macx:CONFIG -= app_bundle
+
 LIBS += -L$$SPLAT_LIB -lSplat$$SPLAT_SUFFIX
 
 # NOTE: QVulkanInstance needs the Vulkan headers, the Vulkan backend is skipped without them.

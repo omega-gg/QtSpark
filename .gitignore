@@ -1,6 +1,8 @@
 /bin/
 /lib/
 /build/
+/deploy/*
+!/deploy/.gitignore
 Makefile*
 *.o
 *.qsb

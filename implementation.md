@@ -444,6 +444,12 @@ not the C runtime's:
 - **Hybrid GPUs:** the viewer and `splattest` export `NvOptimusEnablement` and
   `AmdPowerXpressRequestHighPerformance`, so laptops run them on the discrete GPU.
   `splattest --adapter N` picks another D3D adapter or Vulkan device.
+- **Logging:** the viewer is a GUI application on Windows. Set `QT_FORCE_STDERR_LOGGING=1` to see
+  its messages in a terminal, as `tools/bench.sh` does.
+- **macOS and Linux:** the CI builds and deploys them with the 3rdparty kits, they have not run
+  yet. The executables find the library through `@rpath` on macOS and `$ORIGIN` on Linux. The
+  Linux deploy starts through `start.sh`, because the Qt plugins look for the Qt libraries in their
+  own lib folder.
 
 ## Testing
 
