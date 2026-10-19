@@ -18,7 +18,7 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - run: |
         sh 3rdparty.sh win64 mingw
         export EXTERNAL="$PWD/../3rdparty/win64"
@@ -38,7 +38,7 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - run: |
         sh 3rdparty.sh win64 msvc
         export EXTERNAL="$PWD/../3rdparty/win64"
@@ -58,7 +58,7 @@ jobs:
   macOS:
     runs-on: macos-14
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - run: |
         sh 3rdparty.sh macOS
         export EXTERNAL="$PWD/../3rdparty/macOS"
@@ -80,7 +80,7 @@ jobs:
   linux64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - run: |
         docker run -d --name ubuntu -v $PWD:/QtSpark amd64/ubuntu:22.04 tail -f /dev/null
         docker exec -t ubuntu bash -c "set -e;

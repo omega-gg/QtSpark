@@ -6,7 +6,15 @@ DESTDIR = $$SPLAT_LIB
 
 TEMPLATE = lib
 
-QT += quick concurrent gui-private zlib-private
+QT += quick concurrent gui-private
+
+# NOTE: zlib for SPZ: the copy bundled with Qt when the kit ships one, as on Windows, the system
+#       zlib otherwise. The Linux kit has none.
+qtHaveModule(zlib-private) {
+    QT += zlib-private
+} else {
+    LIBS += -lz
+}
 
 win32:CONFIG += dll
 
