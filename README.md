@@ -15,7 +15,7 @@ following Spark's evolutions stays a mechanical process.
 It runs natively, without a browser: it matches or beats Spark in Chrome on frame time, with
 steadier frames and faster loading.
 
-<img src="dist/pictures/QtSpark.png" alt="The QtSpark viewer" width="800px">
+<img src="dist/pictures/QtSpark.png" alt="The QtSpark viewer" width="640px">
 
 *The viewer showing the butterfly of Spark's examples.*
 
