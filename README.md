@@ -1,5 +1,6 @@
 QtSpark
 ---
+[![Discord](https://img.shields.io/discord/705770212485496852)](https://omega.gg/discord)
 [![build](https://github.com/omega-gg/QtSpark/actions/workflows/build.yml/badge.svg)](https://github.com/omega-gg/QtSpark/actions/workflows/build.yml)
 [![LGPLv3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl.html)
 
