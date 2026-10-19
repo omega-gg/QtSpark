@@ -14,6 +14,7 @@ OTHER_FILES += README.md \
                LICENSE.spark \
                LICENSE.three \
                .azure-pipelines.yml \
+               .github/workflows/build.yml \
                3rdparty.sh \
                build.sh \
                deploy.sh \

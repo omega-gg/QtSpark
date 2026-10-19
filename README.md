@@ -1,5 +1,6 @@
 QtSpark
 ---
+[![build](https://github.com/omega-gg/QtSpark/actions/workflows/build.yml/badge.svg)](https://github.com/omega-gg/QtSpark/actions/workflows/build.yml)
 [![LGPLv3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl.html)
 
 QtSpark is a native C / C++ port of [Spark](https://github.com/sparkjsdev/spark) to Qt. It renders

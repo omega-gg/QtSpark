@@ -1,0 +1,98 @@
+# NOTE: The jobs of .azure-pipelines.yml, on GitHub Actions. Each job zips deploy/ itself, which
+#       keeps the symbolic links and the executable bits that an artifact upload drops.
+
+name: build
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+
+#--------------------------------------------------------------------------------------------------
+# Windows
+#--------------------------------------------------------------------------------------------------
+
+  win64_mingw:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        sh 3rdparty.sh win64 mingw
+        export EXTERNAL="$PWD/../3rdparty/win64"
+        sh build.sh release mingw
+        sh deploy.sh mingw
+        cd deploy
+        7z a ../QtSpark.zip *
+    - uses: actions/upload-artifact@v4
+      with:
+        name: QtSpark-win64-mingw
+        path: QtSpark.zip
+
+  # NOTE: The MSVC kit has the Direct3D 12 backend.
+  win64_msvc:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        sh 3rdparty.sh win64 msvc
+        export EXTERNAL="$PWD/../3rdparty/win64"
+        sh build.sh release msvc
+        sh deploy.sh msvc
+        cd deploy
+        7z a ../QtSpark.zip *
+    - uses: actions/upload-artifact@v4
+      with:
+        name: QtSpark-win64-msvc
+        path: QtSpark.zip
+
+#--------------------------------------------------------------------------------------------------
+# macOS
+#--------------------------------------------------------------------------------------------------
+
+  macOS:
+    runs-on: macos-14
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        sh 3rdparty.sh macOS
+        export EXTERNAL="$PWD/../3rdparty/macOS"
+        sh build.sh
+        sh deploy.sh
+        cd deploy
+        zip -rqy ../QtSpark.zip *
+    - uses: actions/upload-artifact@v4
+      with:
+        name: QtSpark-macOS
+        path: QtSpark.zip
+
+#--------------------------------------------------------------------------------------------------
+# Linux
+#--------------------------------------------------------------------------------------------------
+# NOTE: Qt 6 requires the glibc of Ubuntu 22.04. The older the glibc, the more distributions run
+#       the build. Git is installed before the checkout, which needs it for 3rdparty.sh.
+
+  linux64:
+    runs-on: ubuntu-latest
+    container: ubuntu:22.04
+    steps:
+    - run: |
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update
+        apt-get -y install sudo curl zip unzip git zlib1g-dev
+    - uses: actions/checkout@v4
+    - run: |
+        sh 3rdparty.sh linux
+        export EXTERNAL="$PWD/../3rdparty/linux"
+        sh build.sh
+        sh deploy.sh
+        cd deploy
+        zip -rqy ../QtSpark.zip *
+    - uses: actions/upload-artifact@v4
+      with:
+        name: QtSpark-linux64
+        path: QtSpark.zip
