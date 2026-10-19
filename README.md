@@ -20,6 +20,8 @@ steadier frames and faster loading.
 - [Resync with Spark](resync.md)
 - [Benchmark](doc/benchmark.md)
 
+## Screenshot
+
 <img src="dist/pictures/QtSpark.png" alt="The QtSpark viewer" width="640px">
 
 *The viewer showing the butterfly of Spark's examples.*
