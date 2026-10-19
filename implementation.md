@@ -281,7 +281,7 @@ equation. The camera looks down -Z with +Y up, and Euler angles are YXZ as in th
 |---|---|
 | W A S D, arrows | move forward, left, back, right |
 | Q / E, PageDown / PageUp | down / up |
-| Home / End, Insert / Delete | yaw / pitch |
+| Home / End, Insert / Delete | pitch / yaw |
 | Shift, Ctrl | speed x5, x1/5 |
 | Left drag | rotate, with inertia |
 | Right drag | slide in the view plane |
@@ -342,7 +342,7 @@ SplatView {
 | Group | Members |
 |---|---|
 | Properties | `source`, `backgroundColor`, `orientation`, `cameraPosition`, `cameraRotation`, `fov`, `zNear`, `zFar`, `controlsEnabled`, `controlMode`, `moveSpeed`, `maxStdDev`, `blurAmount`, `minAlpha`, `shDegree`, `fast`, `continuous` |
-| Read only | `status` (Null, Loading, Ready, Error), `error`, `splatCount`, `activeSplats`, `fps`, `sortTime`, `readbackTime`, `loadTime`, `backendName` |
+| Read only | `status` (Null, Loading, Ready, Error), `error`, `splatCount`, `activeSplats`, `fps`, `sortTime`, `metricTime`, `loadTime`, `backendName` |
 | Methods | `resetCamera()`, `lookAt(point)` |
 
 `backgroundColor` accepts alpha: with a translucent color (`"transparent"`), the scene blends

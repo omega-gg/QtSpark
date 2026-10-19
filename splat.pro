@@ -7,6 +7,7 @@ SUBDIRS = src \
           test/splattest
 
 OTHER_FILES += README.md \
+               MANUAL.md \
                implementation.md \
                resync.md \
                LICENSE.md \

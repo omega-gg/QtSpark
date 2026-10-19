@@ -15,6 +15,7 @@ following Spark's evolutions stays a mechanical process.
 It runs natively, without a browser: it matches or beats Spark in Chrome on frame time, with
 steadier frames and faster loading.
 
+- [Manual](MANUAL.md)
 - [Implementation](implementation.md)
 - [Resync with Spark](resync.md)
 - [Benchmark](doc/benchmark.md)
@@ -36,25 +37,11 @@ The viewer opens PLY and SPZ files:
 
     splatviewer [file] [options]
 
-    --backend <d3d11 | d3d12 | vulkan | opengl>   Graphics API (default: the Qt default)
-    --fast                                        Splat performance options
-    --bench <file>                                Windowed benchmark
+    --backend <d3d11 | d3d12 | vulkan | metal | opengl>   Graphics API (default: the Qt default)
+    --fast                                                QtSpark performance options
+    --bench <file>                                        Windowed benchmark
 
-| Input | Action |
-|---|---|
-| W A S D / arrows | move |
-| Q E / PageDown PageUp | down / up |
-| Shift, Ctrl | faster, slower |
-| Left drag | rotate |
-| Right / middle drag | slide |
-| Wheel | forward / back |
-| C | fly or orbit, like the orbit controls of Spark's editor |
-| O, or drop a file | open |
-| Esc | cancel a load |
-| R | reset the camera |
-| 1 / 2 / 3 | OpenCV / OpenGL / Z up orientation |
-
-The movement letters are physical keys, as in Spark: Z Q S D and A E on AZERTY.
+The [manual](MANUAL.md) covers the keys, the mouse, and every SplatView property.
 
 ## Technology
 
