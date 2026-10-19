@@ -16,7 +16,7 @@ It runs natively, without a browser: it matches or beats Spark in Chrome on fram
 steadier frames and faster loading.
 
 - [Implementation](implementation.md)
-- [Resync with Spark](doc/resync.md)
+- [Resync with Spark](resync.md)
 - [Benchmark](doc/benchmark.md)
 
 ## Usage

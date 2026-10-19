@@ -92,7 +92,7 @@ upstream/
   files.txt                   tracked upstream file -> our file mapping (read by tools/resync.sh)
   generated/                  Spark runtime snapshots (generated accumulator GLSL) for diffing
 tools/resync.sh               diff of tracked upstream files between the pin and a new ref
-implementation.md, doc/plan.md, doc/resync.md
+implementation.md, doc/plan.md, resync.md
 LICENSE, LICENSE.spark        Spark MIT notice kept for the ported code
 ```
 
@@ -260,7 +260,7 @@ our native RHI backends.
   - A CPU-computed metric that skips the GL readback stall, for static sources.
   - Skipping re-accumulation when only the sort is stale.
 
-## Resync (doc/resync.md + tools/resync.sh)
+## Resync (resync.md + tools/resync.sh)
 
 - `upstream/spark.pin` holds the synced tag and sha. `upstream/files.txt` maps each tracked upstream
   file (shaders, `SparkRenderer.ts`, `SplatAccumulator.ts`, `dyno/splats.ts`, `dyno/output.ts`,
@@ -286,7 +286,7 @@ our native RHI backends.
 - `implementation.md`: the pipeline in detail, with data layouts, thread model, frame flow, the
   accumulator rotation state machine, per-backend notes (scissor, readback timing, GL stall), shader
   walkthrough, controls and the deviations from Spark.
-- `doc/resync.md`: as above.
+- `resync.md`: as above.
 
 ## Phases
 

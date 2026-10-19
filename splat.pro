@@ -8,6 +8,7 @@ SUBDIRS = src \
 
 OTHER_FILES += README.md \
                implementation.md \
+               resync.md \
                LICENSE.md \
                LICENSE.spark \
                LICENSE.three \
@@ -17,7 +18,6 @@ OTHER_FILES += README.md \
                deploy.sh \
                dist/start.sh \
                doc/plan.md \
-               doc/resync.md \
                doc/benchmark.md \
                upstream/spark.pin \
                upstream/files.txt \

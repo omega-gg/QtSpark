@@ -2,7 +2,7 @@
 //
 // NOTE: Verbatim copy of the upstream file, nothing below this header is changed so a resync is
 //       a plain diff. Included by the Splat shaders with #include "splatDefines.glsl".
-//       See doc/resync.md.
+//       See resync.md.
 
 const float LN_SCALE_MIN = -12.0;
 const float LN_SCALE_MAX = 9.0;

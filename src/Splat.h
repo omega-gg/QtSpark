@@ -38,7 +38,7 @@
 #   define SPLAT_EXPORT Q_DECL_IMPORT
 #endif
 
-// NOTE: The Spark version this code is synced with. See upstream/spark.pin and doc/resync.md.
+// NOTE: The Spark version this code is synced with. See upstream/spark.pin and resync.md.
 #define SPLAT_SPARK_VERSION "2.3.1"
 
 //-------------------------------------------------------------------------------------------------

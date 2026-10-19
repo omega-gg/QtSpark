@@ -1,7 +1,7 @@
 # Upstream Spark files tracked by the port, and where they are ported.
 #
 # Format: <upstream path> <port path>[,<port path>...]
-# Read by tools/resync.sh. Keep it sorted by upstream path. See doc/resync.md.
+# Read by tools/resync.sh. Keep it sorted by upstream path. See resync.md.
 
 rust/Cargo.lock                         src/WSplatMath.cpp
 rust/spark-lib/src/decoder.rs           src/WSplatReceiver.h,src/WSplatLoader.cpp

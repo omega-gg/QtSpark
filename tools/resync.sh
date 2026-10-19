@@ -3,7 +3,7 @@ set -e
 
 #--------------------------------------------------------------------------------------------------
 # Resync report: what changed upstream since the pinned Spark version, file by file.
-# See doc/resync.md for the procedure.
+# See resync.md for the procedure.
 #--------------------------------------------------------------------------------------------------
 
 if [ $# -lt 2 ]; then

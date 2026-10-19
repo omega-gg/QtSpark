@@ -6,7 +6,7 @@ Metal, OpenGL 4.2+ and OpenGL ES 3.0. The port is faithful: the encodings, the s
 pass pipeline and the sort are Spark's, so an upstream change maps to a known place in this code.
 
 The synced Spark version is in `upstream/spark.pin` (currently `v2.3.1`). How to follow upstream is
-in [resync.md](doc/resync.md).
+in [resync.md](resync.md).
 
 ## Scope
 

@@ -1,7 +1,7 @@
 # Resyncing with Spark
 
 Splat follows [Spark](https://github.com/sparkjsdev/spark) closely, so an upstream release becomes a
-list of hunks to port. This file is the procedure. [implementation.md](../implementation.md) explains
+list of hunks to port. This file is the procedure. [implementation.md](implementation.md) explains
 the code.
 
 ## Where things are
