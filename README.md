@@ -54,6 +54,8 @@ The viewer opens PLY and SPZ files:
 | R | reset the camera |
 | 1 / 2 / 3 | OpenCV / OpenGL / Z up orientation |
 
+The movement letters are physical keys, as in Spark: Z Q S D and A E on AZERTY.
+
 ## Technology
 
 QtSpark is built in C++ on [Qt](https://www.qt.io) Quick and its RHI. It ports Spark v2.3.1, and

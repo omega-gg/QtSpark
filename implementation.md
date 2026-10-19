@@ -299,8 +299,10 @@ do not move the camera. Switching modes resets the camera.
 | Right drag, Ctrl / Shift + left drag | pan the target in the view plane |
 | Middle drag, wheel | dolly (one notch = x0.95), the wheel also during a drag, unlike three.js |
 
-Qt keys follow the keyboard layout (on AZERTY, forward is Z), while browser key codes are physical
-keys.
+The movement letters are physical keys, like the browser `KeyboardEvent.code` that Spark reads: on
+AZERTY they are Z Q S D and A E. Qt keys follow the layout, so `getCode` reads the native key code
+(the scan code on Windows and Linux, the virtual key code on macOS). The platforms without native
+codes, and synthesized events without a scan code on Windows and Linux, keep the layout key.
 
 `SplatView.orientation` rotates the mesh:
 

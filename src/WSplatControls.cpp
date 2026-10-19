@@ -192,6 +192,59 @@ static bool hasKeys(const QHash<int, QVector3D> & mapping, const QSet<int> & key
     return false;
 }
 
+// NOTE: The browser KeyboardEvent.code. The movement letters are read by their physical position
+//       on a US keyboard, from the native key code, so WASD and QE stay in place on AZERTY or
+//       QWERTZ, as in Spark. The other keys keep their Qt::Key, which does not follow the layout.
+static int getCode(QKeyEvent * event)
+{
+    int key = event->key();
+
+#if defined(Q_OS_WIN)
+    // NOTE: Synthesized events have no scan code, they keep their key.
+    switch (event->nativeScanCode())
+    {
+    case 0:    return key;
+    case 0x10: return Qt::Key_Q;
+    case 0x11: return Qt::Key_W;
+    case 0x12: return Qt::Key_E;
+    case 0x1e: return Qt::Key_A;
+    case 0x1f: return Qt::Key_S;
+    case 0x20: return Qt::Key_D;
+    }
+#elif defined(Q_OS_MACOS)
+    // NOTE: macOS has no scan code, its virtual key codes are positions (kVK_ANSI_Q and so on).
+    switch (event->nativeVirtualKey())
+    {
+    case 0x0c: return Qt::Key_Q;
+    case 0x0d: return Qt::Key_W;
+    case 0x0e: return Qt::Key_E;
+    case 0x00: return Qt::Key_A;
+    case 0x01: return Qt::Key_S;
+    case 0x02: return Qt::Key_D;
+    }
+#elif defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+    // NOTE: XKB key codes, the evdev codes plus 8. Synthesized events have none.
+    switch (event->nativeScanCode())
+    {
+    case 0:  return key;
+    case 24: return Qt::Key_Q;
+    case 25: return Qt::Key_W;
+    case 26: return Qt::Key_E;
+    case 38: return Qt::Key_A;
+    case 39: return Qt::Key_S;
+    case 40: return Qt::Key_D;
+    }
+#else
+    // NOTE: Without native key codes the letters follow the layout.
+    return key;
+#endif
+
+    // NOTE: A letter at another position, like W on AZERTY, does not move.
+    if (key >= Qt::Key_A && key <= Qt::Key_Z) return Qt::Key_unknown;
+
+    return key;
+}
+
 // NOTE: Maps a Qt button to the browser MouseEvent.button value.
 static int getButton(Qt::MouseButton button)
 {
@@ -222,8 +275,7 @@ WSplatFpsMovement::WSplatFpsMovement()
     rollSpeed   = DEFAULT_ROLL_SPEED;
     rotateSpeed = DEFAULT_FPS_ROTATE_SPEED;
 
-    // NOTE: Browser event.code values are physical keys, Qt::Key values follow the keyboard
-    //       layout. So on AZERTY the forward key is Z, not the physical W key.
+    // NOTE: The letters are physical keys, see getCode: on AZERTY the forward key is Z.
 
     // NOTE: WASD_KEYCODE_MOVE, standard WASD movement keys with E and Q for up and down.
     keycodeMoveMapping.insert(Qt::Key_W, QVector3D( 0,  0, -1));
@@ -267,7 +319,7 @@ void WSplatFpsMovement::keyPress(QKeyEvent * event)
     // NOTE: Auto repeat changes nothing upstream, the key is already down.
     if (event->isAutoRepeat()) return;
 
-    int key = event->key();
+    int key = getCode(event);
 
     // NOTE: This mirrors keydown.CapsLock. Like the browser, Qt reports the Caps Lock key held
     //       state on Windows and Linux and its lock state on macOS. The lock state is not
@@ -282,7 +334,7 @@ void WSplatFpsMovement::keyRelease(QKeyEvent * event)
 {
     if (event->isAutoRepeat()) return;
 
-    int key = event->key();
+    int key = getCode(event);
 
     if (key == Qt::Key_CapsLock) capsLock = false;
 

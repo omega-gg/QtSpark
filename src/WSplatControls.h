@@ -88,7 +88,7 @@ public: // Variables
     float shiftMultiplier;
     float ctrlMultiplier;
 
-    // NOTE: Qt::Key to direction, in place of the browser event.code mappings.
+    // NOTE: Key code to direction, the browser event.code mappings (see getCode).
     QHash<int, QVector3D> keycodeMoveMapping;
     QHash<int, QVector3D> keycodeRotateMapping;
 
