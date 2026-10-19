@@ -28,8 +28,12 @@
 #include <QStringList>
 #include <QSize>
 #include <QOffscreenSurface>
-#include <QVulkanInstance>
 #include <rhi/qrhi.h>
+
+// NOTE: The macOS Qt kit is built without Vulkan, it has no QVulkanInstance.
+#if QT_CONFIG(vulkan)
+#include <QVulkanInstance>
+#endif
 
 // Splat includes
 #include <WSplatRenderer.h>

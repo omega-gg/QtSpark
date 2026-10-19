@@ -28,7 +28,6 @@
 #include <QElapsedTimer>
 #include <QImage>
 #include <QOffscreenSurface>
-#include <QVulkanInstance>
 
 //-------------------------------------------------------------------------------------------------
 // Rhi
