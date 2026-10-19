@@ -1,5 +1,6 @@
-# NOTE: The jobs of .azure-pipelines.yml, on GitHub Actions. Each job zips deploy/ itself, which
-#       keeps the symbolic links and the executable bits that an artifact upload drops.
+# NOTE: The jobs of .azure-pipelines.yml, on GitHub Actions, with the same steps. Each job zips
+#       deploy/ itself, which keeps the symbolic links and the executable bits that an artifact
+#       upload drops.
 
 name: build
 
@@ -74,24 +75,25 @@ jobs:
 # Linux
 #--------------------------------------------------------------------------------------------------
 # NOTE: Qt 6 requires the glibc of Ubuntu 22.04. The older the glibc, the more distributions run
-#       the build. Git is installed before the checkout, which needs it for 3rdparty.sh.
+#       the build.
 
   linux64:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
     steps:
-    - run: |
-        export DEBIAN_FRONTEND=noninteractive
-        apt-get update
-        apt-get -y install sudo curl zip unzip git zlib1g-dev
     - uses: actions/checkout@v4
     - run: |
-        sh 3rdparty.sh linux
-        export EXTERNAL="$PWD/../3rdparty/linux"
-        sh build.sh
-        sh deploy.sh
-        cd deploy
-        zip -rqy ../QtSpark.zip *
+        docker run -d --name ubuntu -v $PWD:/QtSpark amd64/ubuntu:22.04 tail -f /dev/null
+        docker exec -t ubuntu bash -c "set -e;
+                                       cd /QtSpark;
+                                       export DEBIAN_FRONTEND=noninteractive;
+                                       apt-get update;
+                                       apt-get -y install sudo curl zip unzip git zlib1g-dev;
+                                       sh 3rdparty.sh linux;
+                                       export EXTERNAL=/3rdparty/linux;
+                                       sh build.sh;
+                                       sh deploy.sh;
+                                       cd deploy;
+                                       zip -rqy ../QtSpark.zip *"
     - uses: actions/upload-artifact@v4
       with:
         name: QtSpark-linux64
